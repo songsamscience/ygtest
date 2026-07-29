@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>영준쌤 가상실험실 | 자극과 반응</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M18 32h30m0 0l11-10m-11 10l11 10' fill='none' stroke='%23FFC53D' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='18' cy='32' r='13' fill='%233FA796'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@700;800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============ 토큰 ============ */
+:root{
+  /* 주제 팔레트 — 유래: 신경 조직 표본 */
+  --ink:#0A1018;        /* 은염색 표본 바탕 */
+  --myelin:#EFD9A6;     /* 말이집 지질 광택 */
+  --impulse:#FFC53D;    /* 활동전위 탈분극 */
+  --blood:#C7514B;      /* 혈장 속 적혈구 */
+  --target:#3FA796;     /* 표적세포 결합 반응 */
+  /* 브랜드 앵커 */
+  --brand-pink:#FFB7B2; --brand-blue:#0F6FB8;
+
+  /* 간격 */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px; --s10:40px;
+  /* 반지름 (4종) */
+  --r-s:6px; --r-m:10px; --r-l:16px; --r-pill:999px;
+  /* 그림자 (3종) */
+  --sh-1:0 1px 2px rgba(0,0,0,.28);
+  --sh-2:0 10px 24px -8px rgba(0,0,0,.55);
+  --sh-3:0 24px 60px -12px rgba(0,0,0,.7);
+  /* 글자 */
+  --f-head:'Gothic A1',system-ui,sans-serif;
+  --f-body:'IBM Plex Sans KR',system-ui,sans-serif;
+  --f-num:'IBM Plex Mono',ui-monospace,monospace;
+  --fs-title:26px; --fs-sec:19px; --fs-body:15px; --fs-label:13px; --fs-num:30px;
+  /* 레이아웃 높이 */
+  --h-header:60px; --h-steps:44px; --h-ctrl:68px; --w-side:384px;
+  /* 모션 */
+  --t-in:.4s; --t-sw:.25s; --ease:cubic-bezier(.22,.61,.36,1);
+}
+html[data-theme="dark"]{
+  --bg:#0A1018; --surf:#121B26; --surf-2:#18232F; --surf-3:#1E2B39;
+  --line:#27333F; --line-2:#33404E;
+  --txt:#E9EEF3; --txt-2:#94A3B4; --txt-3:#68788A;
+  --tint:rgba(63,167,150,.12); --tint-warn:rgba(255,197,61,.12); --tint-bad:rgba(199,81,75,.14);
+  --ok:#54C79E; --bad:#F08A82; --canvas-bg:#0A1018;
+}
+html[data-theme="light"]{
+  --bg:#EEF1F4; --surf:#FFFFFF; --surf-2:#F6F8FA; --surf-3:#EDF1F4;
+  --line:#DCE2E8; --line-2:#C7D0D9;
+  --txt:#131A21; --txt-2:#5A6674; --txt-3:#7C8894;
+  --tint:rgba(31,122,109,.10); --tint-warn:rgba(176,124,10,.12); --tint-bad:rgba(168,52,46,.10);
+  --ok:#1F7A5B; --bad:#A8342E; --canvas-bg:#151D27;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100dvh;max-height:100dvh;overflow:hidden;overscroll-behavior:none}
+body{
+  background:var(--bg); color:var(--txt); font-family:var(--f-body);
+  font-size:var(--fs-body); line-height:1.55; -webkit-text-size-adjust:100%;
+  -webkit-tap-highlight-color:transparent;
+}
+button,input,textarea,select{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--impulse);outline-offset:2px;border-radius:var(--r-s)}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.u{font-size:.5em;font-weight:500;color:var(--txt-2);margin-left:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ============ 골격 ============ */
+#app{
+  position:fixed; inset:0; display:grid;
+  grid-template-rows:var(--h-header) var(--h-steps) 1fr var(--h-ctrl);
+  overflow:hidden;
+}
+
+/* 헤더 */
+#hd{
+  display:flex;align-items:center;gap:var(--s3);
+  padding:0 var(--s4); border-bottom:1px solid var(--line); background:var(--surf);
+}
+.logo{
+  display:flex;align-items:center;gap:var(--s2);flex-shrink:0;
+  font-family:var(--f-head);font-weight:800;font-size:14px;letter-spacing:-.01em;
+  background:linear-gradient(135deg,var(--brand-blue),#1a4f78);
+  color:#fff;padding:5px 11px 5px 8px;border-radius:var(--r-pill);
+}
+.logo i{width:7px;height:7px;border-radius:50%;background:var(--brand-pink);display:block}
+#hd h1{
+  font-family:var(--f-head);font-weight:700;font-size:var(--fs-sec);
+  letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+#hd h1 small{font-weight:400;font-size:13px;color:var(--txt-3);margin-left:var(--s2);font-family:var(--f-body)}
+.hd-r{margin-left:auto;display:flex;align-items:center;gap:var(--s2)}
+.chip{
+  display:flex;align-items:center;gap:6px;height:38px;padding:0 var(--s3);
+  border:1px solid var(--line-2);border-radius:var(--r-pill);
+  font-size:var(--fs-label);color:var(--txt-2);white-space:nowrap;
+  transition:border-color var(--t-sw) var(--ease),color var(--t-sw) var(--ease);
+}
+.chip:hover{border-color:var(--target);color:var(--txt)}
+.chip b{color:var(--txt);font-weight:600}
+.chip .pen{font-size:11px;color:var(--txt-3)}
+.ico{
+  width:38px;height:38px;display:grid;place-items:center;border-radius:var(--r-s);
+  color:var(--txt-2);transition:background var(--t-sw) var(--ease),color var(--t-sw) var(--ease);
+}
+.ico:hover{background:var(--surf-3);color:var(--txt)}
+.ico svg{width:18px;height:18px}
+.ico.on{color:var(--impulse)}
+
+/* 스텝바 */
+#steps{
+  display:flex;align-items:center;gap:var(--s1);
+  padding:0 var(--s4);border-bottom:1px solid var(--line);background:var(--surf-2);
+  overflow:hidden;
+}
+.step{
+  display:flex;align-items:center;gap:var(--s2);height:100%;padding:0 var(--s3);
+  font-size:var(--fs-label);font-weight:500;color:var(--txt-3);
+  white-space:nowrap;transition:background var(--t-sw) var(--ease),color var(--t-sw) var(--ease);
+  box-shadow:inset 0 -2px 0 transparent;
+}
+.step n{
+  font-family:var(--f-num);font-size:11px;font-weight:600;width:17px;height:17px;
+  display:grid;place-items:center;border-radius:50%;
+  border:1px solid currentColor;flex-shrink:0;
+}
+.step[data-done="1"]{color:var(--target)}
+.step[data-done="1"] n{background:var(--target);border-color:var(--target);color:var(--ink)}
+.step[aria-current="step"]{background:var(--surf-3);color:var(--txt);box-shadow:inset 0 -2px 0 var(--impulse)}
+.step[aria-current="step"] n{border-color:var(--impulse);color:var(--impulse)}
+.step[disabled]{opacity:.42;cursor:not-allowed}
+.step-sep{width:12px;height:1px;background:var(--line-2);flex-shrink:0}
+#steps .spacer{margin-left:auto}
+.mini{font-size:12px;color:var(--txt-3);white-space:nowrap}
+
+/* 스테이지 */
+#stage{position:relative;overflow:hidden;min-height:0}
+.view{
+  position:absolute;inset:0;display:none;min-height:0;
+  grid-template-columns:1fr var(--w-side);gap:var(--s4);padding:var(--s4);
+}
+.view.on{display:grid;animation:vin var(--t-in) var(--ease)}
+@keyframes vin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.view.solo{grid-template-columns:1fr}
+
+/* 캔버스 무대 — 열린 레이아웃, 카드로 감싸지 않는다 */
+.cv-wrap{position:relative;min-width:0;min-height:0;border-radius:var(--r-l);overflow:hidden;background:var(--canvas-bg)}
+.cv-wrap canvas{display:block;width:100%;height:100%}
+.cv-badge{
+  position:absolute;top:var(--s3);left:var(--s4);display:flex;align-items:center;gap:var(--s2);
+  font-size:12px;letter-spacing:.04em;color:#8FA3B5;text-transform:uppercase;
+  font-family:var(--f-num);pointer-events:none;
+}
+.cv-badge s{width:6px;height:6px;border-radius:50%;background:var(--impulse);text-decoration:none}
+.cv-note{
+  position:absolute;left:var(--s4);bottom:var(--s3);right:var(--s4);
+  font-size:12px;color:#7D8FA1;pointer-events:none;
+}
+
+/* 사이드 패널 */
+.side{
+  display:flex;flex-direction:column;min-height:0;gap:var(--s3);
+  background:var(--surf);border:1px solid var(--line);border-radius:var(--r-l);
+  padding:var(--s4);
+}
+.side h2{font-family:var(--f-head);font-weight:700;font-size:var(--fs-sec);letter-spacing:-.02em}
+.side-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin:0 calc(var(--s4)*-1);padding:0 var(--s4)}
+.side-scroll::-webkit-scrollbar{width:6px}
+.side-scroll::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:3px}
+.lbl{font-size:var(--fs-label);font-weight:500;color:var(--txt-2);letter-spacing:.01em}
+
+/* 사례 선택 리스트 */
+.pick{display:flex;flex-direction:column;gap:6px}
+.pick button{
+  display:flex;align-items:center;gap:var(--s3);min-height:46px;padding:var(--s2) var(--s3);
+  border:1px solid var(--line);border-radius:var(--r-m);text-align:left;
+  transition:border-color var(--t-sw) var(--ease),background var(--t-sw) var(--ease);
+}
+.pick button:hover{background:var(--surf-2)}
+.pick button[aria-pressed="true"]{border-color:var(--target);background:var(--tint)}
+.pick .g{width:26px;height:26px;flex-shrink:0;color:var(--txt-2)}
+.pick button[aria-pressed="true"] .g{color:var(--target)}
+.pick .t{font-size:14px;font-weight:500;line-height:1.3}
+.pick .k{font-size:11px;color:var(--txt-3);font-family:var(--f-num)}
+.pick .done{margin-left:auto;color:var(--target);font-size:14px}
+
+/* 시그니처 — 반응시간 계기판 */
+.gauge{
+  position:relative;border:1px solid var(--line-2);border-radius:var(--r-m);
+  background:linear-gradient(160deg,var(--surf-3),var(--surf-2));
+  padding:var(--s3) var(--s4);overflow:hidden;
+}
+.gauge .cap{display:flex;justify-content:space-between;align-items:baseline;font-size:var(--fs-label);color:var(--txt-2)}
+.gauge .val{font-family:var(--f-num);font-weight:600;font-size:var(--fs-num);line-height:1.1;color:var(--impulse);margin-top:2px}
+.gauge .bar{height:5px;border-radius:3px;background:var(--surf);overflow:hidden;margin-top:var(--s2);position:relative}
+.gauge .bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--target),var(--impulse));width:0;transition:width .12s linear}
+.gauge .rt{display:flex;justify-content:space-between;font-size:11px;color:var(--txt-3);font-family:var(--f-num);margin-top:5px}
+
+/* POE */
+.poe{border:1px solid var(--line);border-radius:var(--r-m);padding:var(--s3);background:var(--surf-2)}
+.poe .q{font-size:14px;font-weight:500;margin-bottom:var(--s2);word-break:keep-all}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opts button{
+  display:flex;align-items:center;gap:var(--s2);min-height:44px;padding:var(--s2) var(--s3);
+  border:1px solid var(--line-2);border-radius:var(--r-s);font-size:14px;text-align:left;
+  transition:border-color var(--t-sw) var(--ease),background var(--t-sw) var(--ease);
+}
+.opts button:hover{background:var(--surf-3)}
+.opts button[aria-pressed="true"]{border-color:var(--impulse);background:var(--tint-warn)}
+.opts button .mk{width:16px;height:16px;border:1.5px solid var(--line-2);border-radius:50%;flex-shrink:0}
+.opts button[aria-pressed="true"] .mk{border-color:var(--impulse);background:var(--impulse);box-shadow:inset 0 0 0 3px var(--surf-2)}
+.opts button[disabled]{opacity:.55;cursor:default}
+
+/* 결과 알림 */
+.res{border-radius:var(--r-m);padding:var(--s3);font-size:14px;display:flex;gap:var(--s2);word-break:keep-all;border:1px solid transparent}
+.res .g{width:18px;height:18px;flex-shrink:0;margin-top:1px}
+.res.ok{background:var(--tint);border-color:rgba(63,167,150,.4);color:var(--txt)}
+.res.no{background:var(--tint-bad);border-color:rgba(199,81,75,.4);color:var(--txt)}
+.res b{color:var(--ok)}
+.res.no b{color:var(--bad)}
+
+/* 데이터 행 */
+.rows{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r-m);overflow:hidden}
+.rows div{display:flex;justify-content:space-between;align-items:baseline;background:var(--surf-2);padding:9px var(--s3);font-size:13px}
+.rows span{color:var(--txt-2)}
+.rows b{font-family:var(--f-num);font-weight:600;font-size:15px;font-variant-numeric:tabular-nums}
+
+/* 슬라이더 */
+.sld{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;background:var(--surf-3);outline:none;margin:var(--s3) 0 0}
+.sld::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--myelin);border:3px solid var(--surf);box-shadow:var(--sh-1);cursor:grab}
+.sld::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--myelin);border:3px solid var(--surf);box-shadow:var(--sh-1);cursor:grab}
+.zones{display:flex;height:4px;border-radius:2px;overflow:hidden;margin-top:var(--s2)}
+.zones i{display:block}
+.zones .z1{flex:6;background:rgba(199,81,75,.55)}
+.zones .z2{flex:5;background:var(--target)}
+.zones .z3{flex:9;background:rgba(255,197,61,.5)}
+.zt{display:flex;justify-content:space-between;font-size:11px;color:var(--txt-3);margin-top:5px}
+
+/* 버튼 */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:var(--s2);
+  min-height:44px;padding:0 var(--s5);border-radius:var(--r-m);
+  font-size:14px;font-weight:600;letter-spacing:-.01em;
+  border:1px solid var(--line-2);color:var(--txt);
+  transition:background var(--t-sw) var(--ease),border-color var(--t-sw) var(--ease),transform .12s var(--ease);
+}
+.btn:hover{background:var(--surf-3)}
+.btn:active{transform:scale(.985)}
+.btn svg{width:17px;height:17px}
+.btn.pri{background:var(--impulse);border-color:var(--impulse);color:#1A1206}
+.btn.pri:hover{background:#FFD469;border-color:#FFD469}
+.btn.acc{background:var(--target);border-color:var(--target);color:#04201C}
+.btn.acc:hover{background:#4FBFAC;border-color:#4FBFAC}
+.btn.save{background:linear-gradient(135deg,var(--brand-blue),#14507f);border-color:transparent;color:#fff}
+.btn.ghost{border-color:transparent;color:var(--txt-2)}
+.btn.ghost:hover{color:var(--txt)}
+.btn[disabled]{opacity:.4;cursor:not-allowed;transform:none}
+.btn.w{width:100%}
+.btn.sm{min-height:36px;padding:0 var(--s3);font-size:13px;font-weight:500}
+
+/* 컨트롤 바 */
+#ctrl{
+  display:flex;align-items:center;gap:var(--s3);padding:0 var(--s4);
+  border-top:1px solid var(--line);background:var(--surf);
+}
+#ctrl .now{display:flex;flex-direction:column;min-width:0}
+#ctrl .now .a{font-size:var(--fs-label);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ctrl .now .b{font-size:11px;color:var(--txt-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ctrl .grow{margin-left:auto;display:flex;align-items:center;gap:var(--s2)}
+.brandline{font-size:11px;color:var(--txt-3);white-space:nowrap;font-family:var(--f-num)}
+
+/* ============ 퀴즈 뷰 ============ */
+.quiz{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s4);min-height:0;padding:var(--s4)}
+.qcard{width:100%;max-width:620px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r-l);padding:var(--s6);display:flex;flex-direction:column;gap:var(--s4);max-height:100%;overflow-y:auto;overscroll-behavior:contain}
+.qhead{display:flex;align-items:center;gap:var(--s2);font-size:var(--fs-label);color:var(--txt-2)}
+.qhead .tag{border:1px solid var(--line-2);border-radius:var(--r-s);padding:2px 8px;font-size:11px;font-family:var(--f-num)}
+.qdots{margin-left:auto;display:flex;gap:5px}
+.qdots i{width:7px;height:7px;border-radius:50%;background:var(--line-2)}
+.qdots i.cur{background:var(--impulse);transform:scale(1.25)}
+.qdots i.ok{background:var(--target)}
+.qdots i.no{background:var(--bad)}
+.qtext{font-size:17px;font-weight:500;line-height:1.55;word-break:keep-all}
+
+/* ============ 보고서 뷰 ============ */
+.rep{display:grid;grid-template-columns:1fr 1fr;gap:var(--s4);min-height:0;padding:var(--s4)}
+.panel{background:var(--surf);border:1px solid var(--line);border-radius:var(--r-l);padding:var(--s4);display:flex;flex-direction:column;min-height:0;gap:var(--s3)}
+.panel h2{font-family:var(--f-head);font-weight:700;font-size:var(--fs-sec)}
+.fld{display:flex;flex-direction:column;gap:6px;margin-bottom:var(--s3)}
+.fld input,.fld textarea{
+  width:100%;padding:11px var(--s3);background:var(--surf-2);
+  border:1px solid var(--line-2);border-radius:var(--r-s);font-size:14px;resize:none;
+  transition:border-color var(--t-sw) var(--ease);
+}
+.fld input:focus,.fld textarea:focus{outline:none;border-color:var(--target)}
+.fld .cnt{font-size:11px;color:var(--txt-3);text-align:right;font-family:var(--f-num)}
+.fld .cnt.err{color:var(--bad)}
+.warnbox{display:none;background:var(--tint-warn);border:1px solid rgba(255,197,61,.4);border-radius:var(--r-s);padding:9px var(--s3);font-size:12px;color:var(--txt);word-break:keep-all}
+.sumcard{background:var(--surf-2);border:1px solid var(--line);border-radius:var(--r-m);padding:var(--s3);margin-bottom:var(--s2)}
+.sumcard .h{display:flex;align-items:center;gap:var(--s2);font-size:12px;color:var(--txt-3);font-family:var(--f-num);margin-bottom:5px}
+.sumcard .m{font-size:14px;font-weight:500;word-break:keep-all}
+.sumcard .d{display:flex;gap:var(--s3);margin-top:6px;font-size:12px;color:var(--txt-2)}
+.sumcard .d b{font-family:var(--f-num);color:var(--txt)}
+.empty{text-align:center;color:var(--txt-3);font-size:13px;padding:var(--s8) var(--s4);word-break:keep-all}
+
+/* ============ 드로어 / 모달 ============ */
+.scrim{position:fixed;inset:0;background:rgba(4,8,12,.62);backdrop-filter:blur(2px);z-index:60;opacity:0;pointer-events:none;transition:opacity var(--t-sw) var(--ease)}
+.scrim.on{opacity:1;pointer-events:auto}
+#drawer{
+  position:fixed;top:0;right:0;bottom:0;width:min(430px,100vw);z-index:70;
+  background:var(--surf);border-left:1px solid var(--line);box-shadow:var(--sh-3);
+  transform:translateX(100%);transition:transform var(--t-sw) var(--ease);
+  display:flex;flex-direction:column;
+}
+#drawer.on{transform:none}
+.dhead{display:flex;align-items:center;gap:var(--s3);padding:var(--s4);border-bottom:1px solid var(--line)}
+.dhead h2{font-family:var(--f-head);font-weight:700;font-size:var(--fs-sec);flex:1}
+.dbody{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:var(--s4)}
+.dfoot{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) var(--s4);border-top:1px solid var(--line)}
+.tcard{display:flex;flex-direction:column;gap:var(--s3)}
+.tcard .fig{background:var(--surf-2);border-radius:var(--r-m);padding:var(--s3);display:grid;place-items:center}
+.tcard .fig svg{width:100%;height:auto;max-height:190px}
+.tcard .def{font-size:16px;font-weight:600;word-break:keep-all}
+.tcard .txt{font-size:14px;color:var(--txt-2);line-height:1.65;word-break:keep-all}
+.tcard .link{background:var(--tint);border-left:3px solid var(--target);border-radius:0 var(--r-s) var(--r-s) 0;padding:var(--s3);font-size:13px;word-break:keep-all}
+.tcard .link b{font-family:var(--f-num);color:var(--target)}
+details.more{border-top:1px solid var(--line);padding-top:var(--s3)}
+details.more summary{font-size:13px;color:var(--txt-2);cursor:pointer;list-style:none}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::before{content:'＋ ';color:var(--target)}
+details.more[open] summary::before{content:'－ '}
+details.more p{font-size:13px;color:var(--txt-2);margin-top:var(--s2);line-height:1.6;word-break:keep-all}
+
+.modal{position:fixed;inset:0;z-index:80;display:none;place-items:center;padding:var(--s4)}
+.modal.on{display:grid}
+.mbox{width:100%;max-width:420px;max-height:86dvh;overflow-y:auto;overscroll-behavior:contain;background:var(--surf);border:1px solid var(--line);border-radius:var(--r-l);box-shadow:var(--sh-3);padding:var(--s6);animation:pop var(--t-sw) var(--ease)}
+@keyframes pop{from{opacity:0;transform:scale(.96) translateY(6px)}to{opacity:1;transform:none}}
+.mbox h2{font-family:var(--f-head);font-weight:700;font-size:22px;margin-bottom:var(--s2)}
+.mbox p{font-size:14px;color:var(--txt-2);word-break:keep-all;line-height:1.6}
+.foot-brand{margin-top:var(--s5);padding-top:var(--s4);border-top:1px solid var(--line);font-size:12px;color:var(--txt-3);line-height:1.9}
+.foot-brand b{color:var(--txt-2);font-weight:600}
+
+/* 진입 게이트 */
+#gate{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:var(--s5);background:var(--bg)}
+#gate.off{display:none}
+.gbox{width:100%;max-width:400px}
+.gbox .mark{width:52px;height:52px;margin-bottom:var(--s5)}
+.gbox h1{font-family:var(--f-head);font-weight:800;font-size:30px;letter-spacing:-.03em;line-height:1.2}
+.gbox .sub{color:var(--txt-2);font-size:14px;margin-top:var(--s2);word-break:keep-all}
+.gbox .in{display:flex;flex-direction:column;gap:var(--s3);margin-top:var(--s6)}
+.gbox input{
+  width:100%;padding:13px var(--s4);background:var(--surf);border:1px solid var(--line-2);
+  border-radius:var(--r-m);font-size:16px;transition:border-color var(--t-sw) var(--ease);
+}
+.gbox input:focus{outline:none;border-color:var(--target)}
+.gbox .err{font-size:13px;color:var(--bad);min-height:18px}
+.gbox .priv{font-size:12px;color:var(--txt-3);margin-top:var(--s4);word-break:keep-all;line-height:1.6}
+
+/* 토스트 */
+#toast{position:fixed;left:50%;bottom:calc(var(--h-ctrl) + 16px);transform:translate(-50%,12px);z-index:95;
+  background:var(--surf-3);border:1px solid var(--line-2);border-radius:var(--r-pill);
+  padding:10px var(--s5);font-size:13px;box-shadow:var(--sh-2);opacity:0;pointer-events:none;
+  transition:opacity var(--t-sw) var(--ease),transform var(--t-sw) var(--ease);white-space:nowrap}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* 캡처용 시트 (화면 밖) */
+#sheet{position:fixed;left:-9999px;top:0;width:794px;background:#fff;color:#15202B;padding:44px;font-family:var(--f-body)}
+#sheet h1{font-family:var(--f-head);font-size:24px;font-weight:800;letter-spacing:-.02em}
+#sheet .meta{display:flex;gap:20px;font-size:13px;color:#5A6674;margin-top:8px;padding-bottom:14px;border-bottom:2px solid #15202B}
+#sheet h3{font-size:14px;font-weight:600;margin:22px 0 8px;color:#0F6FB8}
+#sheet .box{border:1px solid #D8DEE4;border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+#sheet table{width:100%;border-collapse:collapse;font-size:12.5px}
+#sheet th,#sheet td{border:1px solid #D8DEE4;padding:7px 9px;text-align:left}
+#sheet th{background:#F2F5F8;font-weight:600}
+#sheet .ft{margin-top:26px;padding-top:12px;border-top:1px solid #D8DEE4;font-size:11px;color:#7C8894;line-height:1.7}
+
+/* ============ 반응형 ============ */
+@media (max-width:1000px){ :root{--w-side:340px} }
+@media (max-width:860px){
+  :root{--h-header:56px;--h-steps:46px;--h-ctrl:60px;--fs-title:20px;--fs-sec:17px;--fs-num:24px}
+  #hd h1{display:none}
+  #hd{gap:var(--s2);padding:0 var(--s2)}
+  .hd-r{gap:2px}
+  .ico{width:44px;height:44px}
+  .chip{height:44px;padding:0 10px}
+  .chip .pen,.chip .nm{display:none}
+  .view{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;gap:var(--s2);padding:var(--s2)}
+  .side{
+    max-height:min(58dvh,420px);border-radius:var(--r-l) var(--r-l) 0 0;
+    padding:var(--s3) var(--s4) var(--s4);position:relative;
+  }
+  .side::before{content:'';position:absolute;top:6px;left:50%;transform:translateX(-50%);width:34px;height:4px;border-radius:2px;background:var(--line-2)}
+  .side.min{max-height:none}
+  .side.min .side-scroll,.side.min .side-hide{display:none}
+  .rep{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}
+  .rep .panel:first-child{max-height:34dvh}
+  .brandline{display:none}
+  #ctrl{gap:var(--s2);padding:0 var(--s3)}
+  .btn{padding:0 var(--s3)}
+  .step .lb{display:none}
+  .step{padding:0 var(--s2);min-width:44px;justify-content:center}
+  .btn{min-width:44px}
+  .step[aria-current="step"] .lb{display:inline}
+}
+@media (max-height:480px){
+  :root{--h-header:48px;--h-steps:36px;--h-ctrl:54px}
+  .side{max-height:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header id="hd">
+    <span class="logo"><i></i>영준쌤</span>
+    <h1>자극과 반응<small>영준쌤 가상실험실</small></h1>
+    <div class="hd-r">
+      <button class="chip" id="who" onclick="Gate.open(true)" aria-label="학번과 이름 수정하기">
+        <b id="who-t">학번 입력</b><span class="nm" id="who-n"></span><span class="pen">수정</span>
+      </button>
+      <button class="ico" id="b-theory" onclick="Theory.open()" aria-label="원리 정리 열기" title="원리 정리">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22z"/><path d="M9 7h7M9 11h5"/></svg>
+      </button>
+      <button class="ico" id="b-theme" onclick="UI.theme()" aria-label="밝은 화면으로 바꾸기" title="화면 밝기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+      </button>
+      <button class="ico" id="b-sound" onclick="UI.sound()" aria-label="소리 켜기" title="소리">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m17 9 4 6M21 9l-4 6" id="mute-x"/></svg>
+      </button>
+      <button class="ico" onclick="UI.modal('m-info')" aria-label="실험실 정보" title="정보">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <nav id="steps" aria-label="실험 단계"></nav>
+
+  <main id="stage">
+    <!-- 1단계: 신경 전달 -->
+    <section class="view" data-v="1" aria-label="신경 전달 경로 관찰">
+      <div class="cv-wrap">
+        <canvas id="cv1"></canvas>
+        <div class="cv-badge"><s></s><span id="cv1-tag">신경 전달 경로</span></div>
+        <div class="cv-note" id="cv1-note">사례를 고르고 <b>자극 발생시키기</b>를 눌러 보세요.</div>
+      </div>
+      <div class="side" id="side1">
+        <h2>어디까지 갔다 올까요?</h2>
+        <div class="pick" id="pick1"></div>
+        <div class="gauge side-hide">
+          <div class="cap"><span>반응 시간</span><span id="g1-center">—</span></div>
+          <div class="val num"><span id="g1-ms">0</span><span class="u">ms</span></div>
+          <div class="bar"><i id="g1-bar"></i></div>
+          <div class="rt"><span>0</span><span>250 ms</span></div>
+        </div>
+        <div class="side-scroll" id="s1-body"></div>
+        <button class="btn acc w side-hide" id="s1-save" onclick="Neuro.record()" disabled>측정값 기록하기</button>
+      </div>
+    </section>
+
+    <!-- 2단계: 호르몬 조절 -->
+    <section class="view" data-v="2" aria-label="호르몬 조절 시뮬레이터">
+      <div class="cv-wrap">
+        <canvas id="cv2"></canvas>
+        <div class="cv-badge"><s style="background:var(--target)"></s><span id="cv2-tag">호르몬 조절</span></div>
+        <div class="cv-note" id="cv2-note">분비량을 바꾸고 <b>24시간 관찰하기</b>를 눌러 보세요.</div>
+      </div>
+      <div class="side" id="side2">
+        <h2>많으면 어떻게 될까요?</h2>
+        <div class="pick" id="pick2"></div>
+        <div class="side-scroll" id="s2-body"></div>
+        <button class="btn acc w side-hide" id="s2-save" onclick="Hormone.record()" disabled>측정값 기록하기</button>
+      </div>
+    </section>
+
+    <!-- 3단계: 확인 퀴즈 -->
+    <section class="view solo" data-v="3" aria-label="확인 퀴즈">
+      <div class="quiz"><div class="qcard" id="qcard"></div></div>
+    </section>
+
+    <!-- 4단계: 탐구 보고서 -->
+    <section class="view solo" data-v="4" aria-label="탐구 보고서">
+      <div class="rep">
+        <div class="panel">
+          <h2>내 실험 기록</h2>
+          <div class="side-scroll" id="rep-sum"></div>
+        </div>
+        <div class="panel">
+          <h2>새로운 호르몬 조사하기</h2>
+          <div class="side-scroll">
+            <div class="fld">
+              <label class="lbl" for="r-h">1. 조사할 호르몬 이름</label>
+              <input id="r-h" placeholder="예: 멜라토닌" oninput="Report.check()">
+              <div class="warnbox" id="r-warn">수업에서 이미 다룬 호르몬이에요. 다른 호르몬을 골라 보면 어떨까요?</div>
+            </div>
+            <div class="fld">
+              <label class="lbl" for="r-o">2. 분비되는 곳</label>
+              <input id="r-o" placeholder="예: 간뇌 아래 송과샘" oninput="Report.check()">
+            </div>
+            <div class="fld">
+              <label class="lbl" for="r-p">3. 몸에서 하는 일</label>
+              <textarea id="r-p" rows="5" placeholder="이 호르몬이 많아지거나 적어지면 몸이 어떻게 달라지는지 적어 주세요." oninput="Report.check()"></textarea>
+              <div class="cnt" id="r-cnt">0 / 80자</div>
+            </div>
+            <div class="fld">
+              <label class="lbl" for="r-s">4. 찾아본 곳</label>
+              <input id="r-s" placeholder="예: 과학 교과서 145쪽" oninput="Report.check()">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="ctrl">
+    <button class="btn ghost" id="c-prev" onclick="Flow.go(App.step-1)">이전</button>
+    <div class="now"><span class="a" id="c-a">—</span><span class="b" id="c-b">—</span></div>
+    <div class="grow">
+      <span class="brandline">© 영준쌤 가상실험실</span>
+      <button class="btn pri" id="c-main">실행</button>
+      <button class="btn" id="c-next" onclick="Flow.go(App.step+1)">다음</button>
+    </div>
+  </footer>
+</div>
+
+<div class="scrim" id="scrim" onclick="UI.closeAll()"></div>
+
+<aside id="drawer" role="dialog" aria-modal="true" aria-label="원리 정리">
+  <div class="dhead">
+    <h2 id="t-title">원리 정리</h2>
+    <button class="ico" onclick="Theory.close()" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="dbody" id="t-body"></div>
+  <div class="dfoot">
+    <button class="btn sm" onclick="Theory.move(-1)">이전 카드</button>
+    <span class="mini num" id="t-prog">1 / 5</span>
+    <button class="btn sm" style="margin-left:auto" onclick="Theory.move(1)">다음 카드</button>
+  </div>
+</aside>
+
+<div class="modal" id="m-info" role="dialog" aria-modal="true" aria-label="실험실 정보">
+  <div class="mbox">
+    <h2>영준쌤 가상실험실</h2>
+    <p>중학교 3학년 <b>자극과 반응</b> 단원 실험실입니다. 신경계의 전달 경로와 호르몬의 조절 작용을 직접 조작하며 확인해요.</p>
+    <div class="rows" style="margin-top:16px">
+      <div><span>성취기준</span><b style="font-size:13px">9과20-02 · 9과20-03</b></div>
+      <div><span>실험 유형</span><b style="font-size:13px">측정형</b></div>
+      <div><span>수업 시간</span><b style="font-size:13px">45분</b></div>
+    </div>
+    <p style="margin-top:14px;font-size:13px">수치 근거: 단순 시각 반응 시간 180~250 ms, 척수 반사 20~80 ms, 공복 혈당 70~100 mg/dL, 하루 오줌량 1.0~2.0 L (교과서·생리학 표준값).</p>
+    <div class="foot-brand">
+      🧪 <b>영준쌤 가상실험실</b><br>
+      ⓒ 2026 영준쌤 | 아주중학교<br>
+      ⚠ 무단 복제·상업적 이용 금지
+    </div>
+    <button class="btn w" style="margin-top:20px" onclick="UI.closeAll()">닫기</button>
+  </div>
+</div>
+
+<div class="modal" id="m-term" role="dialog" aria-modal="true" aria-label="용어 뜻">
+  <div class="mbox">
+    <h2 id="tm-w">용어</h2>
+    <p id="tm-d"></p>
+    <button class="btn w" style="margin-top:20px" onclick="UI.closeAll()">알겠어요</button>
+  </div>
+</div>
+
+<div id="gate">
+  <div class="gbox">
+    <svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><path d="M18 32h30m0 0l11-10m-11 10l11 10" fill="none" stroke="#FFC53D" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18" cy="32" r="13" fill="#3FA796"/></svg>
+    <h1 id="g-title">자극과 반응 실험실</h1>
+    <p class="sub" id="g-sub">학번과 이름을 적으면 내 기록이 보고서에 자동으로 담겨요.</p>
+    <div class="in">
+      <input id="g-id" type="text" inputmode="numeric" maxlength="5" placeholder="학번 5자리 (예: 30112)" autocomplete="off">
+      <input id="g-nm" type="text" maxlength="10" placeholder="이름" autocomplete="off">
+      <div class="err" id="g-err"></div>
+      <button class="btn pri w" id="g-ok" onclick="Gate.submit()">실험 시작하기</button>
+      <button class="btn ghost w" id="g-cancel" style="display:none" onclick="Gate.cancel()">고치지 않고 돌아가기</button>
+    </div>
+    <p class="priv">입력한 학번·이름은 서버로 보내지 않고 이 기기의 브라우저에만 저장돼요. 잘못 적었다면 화면 위 학번 칩을 눌러 언제든 고칠 수 있어요.</p>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<div class="sr" id="live" aria-live="polite"></div>
+<div id="sheet"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+'use strict';
+/* ==================== 데이터 ==================== */
+// 반응 시간은 생리학 표준 측정값: 단순 시각 반응 180~250ms, 다중시냅스 회피반사 40~80ms, 단일시냅스 무릎반사 20~30ms
+const NEURO=[
+ {id:'n1',kind:'의식적 반응',name:'초록불을 보고 발을 뗀다',center:'대뇌',ms:220,
+  recep:'eye',eff:'leg',viaBrain:true,
+  route:'눈 → 시각 신경 → 대뇌 → 척수 → 운동 신경 → 다리 근육',
+  why:'대뇌가 “초록불이다”라고 판단한 뒤 명령을 내려요. 거쳐 가는 곳이 많아 가장 느립니다.',
+  extra:'내가 마음먹고 하는 행동은 모두 대뇌를 거칩니다.'},
+ {id:'n2',kind:'무조건 반사',name:'뜨거운 냄비에서 손을 뗀다',center:'척수',ms:55,
+  recep:'skin',eff:'arm',viaBrain:false,
+  route:'피부 → 감각 신경 → 척수 → 운동 신경 → 팔 근육',
+  why:'척수가 대뇌를 기다리지 않고 바로 명령을 내려요. 그래서 4배 가까이 빠릅니다.',
+  extra:'“뜨겁다”는 느낌은 손을 뗀 뒤에 대뇌로 전해집니다. 그래서 놀란 다음에 아픈 거예요.'},
+ {id:'n3',kind:'무조건 반사',name:'무릎을 두드리자 다리가 올라간다',center:'척수',ms:25,
+  recep:'tendon',eff:'thigh',viaBrain:false,
+  route:'힘줄 → 감각 신경 → 척수 → 운동 신경 → 넓적다리 근육',
+  why:'감각 신경과 운동 신경이 척수에서 곧바로 이어져 있어 가장 짧은 경로예요.',
+  extra:'거치는 시냅스가 하나뿐이라 신경계에서 가장 빠른 반응 중 하나입니다.'}
+];
+
+// 호르몬 수치는 교과서·표준 생리값 기준
+const HORMONE=[
+ {id:'h1',name:'인슐린',gland:'이자',target:'간·근육 세포',
+  slabel:'인슐린 분비량',vlabel:'혈당량',unit:'mg/dL',
+  yMin:40,yMax:230,normal:[70,140],base:90,speed:'빠름 (수 분)',
+  scene:'meal',
+  calc:(r,t)=>{ // 아침·점심·저녁 3회 식사, 인슐린이 적을수록 회복이 느리다
+    const B=90+70*Math.max(0,1-r)-35*Math.max(0,r-1);
+    const tau=1.2/Math.max(r,0.12);
+    let v=B;
+    [1,8,15].forEach(m=>{ if(t>=m) v+=85*Math.exp(-(t-m)/tau); });
+    return Math.max(35,Math.min(260,v));
+  },
+  low:'혈당이 내려가지 않고 계속 높게 유지돼요. 당뇨병에서 나타나는 모습입니다.',
+  ok:'식사 뒤 올라간 혈당이 두어 시간 만에 정상 범위로 돌아와요.',
+  high:'혈당이 정상보다 낮게 떨어져요. 심하면 어지럽고 힘이 빠집니다.',
+  term:'인슐린'},
+ {id:'h2',name:'티록신',gland:'갑상샘',target:'온몸의 세포',
+  slabel:'티록신 분비량',vlabel:'물질대사량',unit:'%',
+  yMin:30,yMax:180,normal:[90,110],base:100,speed:'느림 (며칠)',
+  scene:'body',
+  calc:(r,t)=>{const M=55+45*r;return 100+(M-100)*(1-Math.exp(-t/8));},
+  low:'세포 호흡이 느려져 몸이 처지고 추위를 잘 타요. 갑상샘 기능 저하증의 모습입니다.',
+  ok:'물질대사량이 100% 근처에서 안정적으로 유지돼요.',
+  high:'세포 호흡이 빨라져 체중이 줄고 더위를 타며 심장이 빨리 뜁니다.',
+  term:'물질대사'},
+ {id:'h3',name:'항이뇨 호르몬',gland:'뇌하수체 뒤엽',target:'콩팥',
+  slabel:'항이뇨 호르몬 분비량',vlabel:'시간당 오줌량',unit:'mL/h',
+  yMin:0,yMax:560,normal:[40,85],base:62,speed:'보통 (수십 분)',
+  scene:'kidney',
+  calc:(r,t)=>{const U=(0.5+11.5*Math.exp(-2.4*r))*1000/24;return U+(62-U)*Math.exp(-t/1.5);},
+  low:'콩팥이 물을 거의 못 붙잡아 오줌이 쏟아져 나와요. 하루 10 L가 넘기도 합니다.',
+  ok:'하루 1.5 L 정도의 오줌이 나와요. 몸속 물의 양이 잘 유지됩니다.',
+  high:'오줌이 거의 나오지 않아 몸에 물이 쌓이고 부어요.',
+  term:'항상성'}
+];
+
+const QUIZ=[
+ {t:'선택형',q:'뜨거운 냄비에 손이 닿았을 때 손을 얼른 떼는 반응의 <b>명령을 내리는 곳</b>은 어디일까요?',
+  o:['대뇌','척수','간뇌','연수'],a:1,
+  ex:'이 반응은 무조건 반사예요. 척수가 대뇌를 거치지 않고 바로 명령을 내려서 55 ms 만에 손이 움직입니다. 대뇌는 손을 뗀 뒤에야 “뜨겁다”를 느껴요.'},
+ {t:'빈칸',q:'의식적 반응은 약 220 ms, 무조건 반사는 약 25~55 ms가 걸립니다. 무조건 반사가 더 빠른 까닭은 신호가 ___ 를 거치지 않기 때문입니다.',
+  o:['대뇌','척수','감각 신경','운동 신경'],a:0,
+  ex:'무조건 반사는 감각 신경 → 척수 → 운동 신경으로 곧장 이어져요. 판단을 맡는 대뇌를 건너뛰기 때문에 훨씬 빠릅니다.'},
+ {t:'선택형',q:'인슐린 분비량을 0%로 낮췄을 때 혈당 그래프는 어떻게 되었나요?',
+  o:['식사 뒤 올라간 혈당이 곧 정상으로 돌아온다','혈당이 내려가지 않고 계속 높게 유지된다','혈당이 정상보다 낮게 떨어진다','혈당이 전혀 변하지 않는다'],a:1,
+  ex:'인슐린은 혈당을 낮추는 호르몬이에요. 분비되지 않으면 식사로 올라간 혈당이 내려가지 못하고 계속 높게 유지됩니다. 이것이 당뇨병의 모습이에요.'},
+ {t:'O/X',q:'신경과 호르몬을 비교한 설명입니다. <b>“호르몬은 신경보다 전달 속도가 빠르지만 효과는 짧게 끝난다.”</b>',
+  o:['맞아요','아니에요'],a:1,
+  ex:'반대예요. 신경은 전기 신호라 빠르지만 좁은 곳에만 짧게 작용하고, 호르몬은 혈액을 타고 가서 느리지만 넓은 범위에 오래 작용합니다. 티록신 그래프가 24시간이 지나도 계속 변하던 것을 떠올려 보세요.'}
+];
+
+const TERMS={
+ '뉴런':'신경계를 이루는 세포예요. 자극을 전기 신호로 바꿔 전달합니다. 감각 뉴런·연합 뉴런·운동 뉴런으로 나뉘어요.',
+ '시냅스':'뉴런과 뉴런이 만나는 아주 좁은 틈이에요. 신호가 이 틈을 건널 때 약간의 시간이 걸립니다.',
+ '반사궁':'자극 → 감각 뉴런 → 척수 → 운동 뉴런 → 반응기로 이어지는 짧은 경로예요. 대뇌를 거치지 않습니다.',
+ '항상성':'몸속 상태(체온·혈당·물의 양)를 늘 일정하게 지키려는 성질이에요.',
+ '표적세포':'특정 호르몬이 도착했을 때 반응하는 세포예요. 그 호르몬에 맞는 수용체를 가지고 있습니다.',
+ '음성 피드백':'어떤 값이 너무 높아지면 그것을 낮추는 쪽으로, 너무 낮아지면 높이는 쪽으로 되돌리는 조절 방식이에요.',
+ '내분비샘':'호르몬을 만들어 혈액으로 바로 내보내는 기관이에요. 이자·갑상샘·뇌하수체 등이 있습니다.',
+ '물질대사':'세포가 영양소를 분해해 에너지를 얻는 모든 화학 반응이에요.',
+ '인슐린':'이자에서 나와 혈당을 낮추는 호르몬이에요. 포도당을 세포 안으로 들여보냅니다.'
+};
+
+const STEPS=[
+ {n:1,label:'신경 전달'},{n:2,label:'호르몬 조절'},
+ {n:3,label:'확인 퀴즈'},{n:4,label:'탐구 보고서'}
+];
+
+/* ==================== 상태 ==================== */
+const App={
+  step:1, id:'', name:'', sound:false, theme:'dark',
+  nIdx:0, hIdx:0,
+  nRec:{}, hRec:{},        // 기록: {n1:{predict,ms,ok}}, {h1:{level,predict,end,ok}}
+  nPred:{}, hPred:{},      // 예측(POE)
+  quiz:{i:0,ans:{}},
+  slider:{h1:100,h2:100,h3:100},
+  reduced:matchMedia('(prefers-reduced-motion:reduce)').matches,
+  save(){try{localStorage.setItem('yj_lab',JSON.stringify({
+    id:App.id,name:App.name,sound:App.sound,theme:App.theme,
+    nRec:App.nRec,hRec:App.hRec,nPred:App.nPred,hPred:App.hPred,
+    quiz:App.quiz,step:App.step,rep:Report.read()}));}catch(e){}},
+  load(){try{return JSON.parse(localStorage.getItem('yj_lab')||'null');}catch(e){return null;}}
+};
+
+/* ==================== 공통 UI ==================== */
+const UI={
+  $:(s)=>document.querySelector(s),
+  el(id){return document.getElementById(id)},
+  toast(msg){const t=UI.el('toast');t.textContent=msg;t.classList.add('on');
+    clearTimeout(UI._tt);UI._tt=setTimeout(()=>t.classList.remove('on'),2200);},
+  live(msg){UI.el('live').textContent=msg;},
+  theme(){
+    App.theme=App.theme==='dark'?'light':'dark';
+    document.documentElement.dataset.theme=App.theme;
+    UI.el('b-theme').setAttribute('aria-label',App.theme==='dark'?'밝은 화면으로 바꾸기':'어두운 화면으로 바꾸기');
+    App.save();
+  },
+  sound(){
+    App.sound=!App.sound;
+    UI.el('b-sound').classList.toggle('on',App.sound);
+    UI.el('mute-x').style.display=App.sound?'none':'';
+    UI.el('b-sound').setAttribute('aria-label',App.sound?'소리 끄기':'소리 켜기');
+    if(App.sound)Sfx.play('tap');
+    App.save();
+  },
+  modal(id){UI.el('scrim').classList.add('on');UI.el(id).classList.add('on');},
+  term(w){if(!TERMS[w])return;UI.el('tm-w').textContent=w;UI.el('tm-d').textContent=TERMS[w];UI.modal('m-term');},
+  closeAll(){
+    UI.el('scrim').classList.remove('on');
+    document.querySelectorAll('.modal.on').forEach(m=>m.classList.remove('on'));
+    UI.el('drawer').classList.remove('on');
+  }
+};
+window.UIterm=(w)=>UI.term(w);
+
+/* ==================== 사운드 (Web Audio 합성) ==================== */
+const Sfx={
+  ctx:null,
+  play(type){
+    if(!App.sound)return;
+    try{
+      if(!Sfx.ctx)Sfx.ctx=new (window.AudioContext||window.webkitAudioContext)();
+      const c=Sfx.ctx,o=c.createOscillator(),g=c.createGain();
+      o.connect(g);g.connect(c.destination);
+      const n=c.currentTime;
+      if(type==='tap'){o.type='sine';o.frequency.setValueAtTime(520,n);g.gain.setValueAtTime(.04,n);
+        g.gain.exponentialRampToValueAtTime(.001,n+.09);o.start(n);o.stop(n+.1);}
+      else if(type==='zap'){o.type='sawtooth';o.frequency.setValueAtTime(160,n);
+        o.frequency.exponentialRampToValueAtTime(880,n+.18);g.gain.setValueAtTime(.05,n);
+        g.gain.exponentialRampToValueAtTime(.001,n+.22);o.start(n);o.stop(n+.24);}
+      else if(type==='ok'){o.type='triangle';o.frequency.setValueAtTime(660,n);
+        o.frequency.setValueAtTime(880,n+.09);g.gain.setValueAtTime(.05,n);
+        g.gain.exponentialRampToValueAtTime(.001,n+.24);o.start(n);o.stop(n+.26);}
+      else if(type==='no'){o.type='sine';o.frequency.setValueAtTime(330,n);
+        o.frequency.exponentialRampToValueAtTime(200,n+.2);g.gain.setValueAtTime(.045,n);
+        g.gain.exponentialRampToValueAtTime(.001,n+.24);o.start(n);o.stop(n+.26);}
+      else if(type==='pulse'){o.type='sine';o.frequency.setValueAtTime(300,n);g.gain.setValueAtTime(.03,n);
+        g.gain.exponentialRampToValueAtTime(.001,n+.14);o.start(n);o.stop(n+.15);}
+    }catch(e){}
+  }
+};
+
+/* ==================== 캔버스 헬퍼 ==================== */
+const CV={
+  reg:{},
+  init(id){
+    const cv=UI.el(id),wrap=cv.parentElement;
+    cv._fit=()=>{
+      const r=wrap.getBoundingClientRect();
+      if(!r.width||!r.height)return;
+      const d=Math.min(window.devicePixelRatio||1,2);
+      const nw=Math.round(r.width*d), nh=Math.round(r.height*d);
+      if(cv.width===nw&&cv.height===nh)return;
+      cv.width=nw;cv.height=nh;cv._d=d;cv._w=r.width;cv._h=r.height;
+    };
+    new ResizeObserver(cv._fit).observe(wrap);cv._fit();
+    CV.reg[id]=cv;return cv;
+  },
+  // 옵저버가 늦거나 발화하지 않는 환경(백그라운드 탭·비합성 프레임) 대비
+  fitAll(){Object.values(CV.reg).forEach(c=>c._fit&&c._fit());},
+  ctx(id){
+    const cv=CV.reg[id];if(!cv)return null;
+    if(!cv._w)cv._fit();
+    if(!cv._w)return null;
+    const x=cv.getContext('2d');
+    x.setTransform(cv._d,0,0,cv._d,0,0);
+    return {x,w:cv._w,h:cv._h};
+  },
+  // 접촉 그림자 — 광원 좌상단이므로 항상 우하향
+  shadow(x,cx,cy,rx,ry){
+    x.save();x.globalAlpha=.34;x.fillStyle='#000';x.beginPath();
+    x.ellipse(cx+rx*.22,cy+ry*.5,rx,ry,0,0,Math.PI*2);x.filter='blur(4px)';x.fill();x.restore();
+  },
+  mark(x,w,h){
+    x.save();x.font='500 10px "IBM Plex Mono",monospace';x.fillStyle='rgba(180,196,210,.34)';
+    x.textAlign='right';x.textBaseline='bottom';x.fillText('© 영준쌤 가상실험실',w-12,h-8);x.restore();
+  },
+  roundRect(x,a,b,w,h,r){
+    x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);
+    x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath();
+  }
+};
+const lerp=(a,b,t)=>a+(b-a)*t;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const esc=(s)=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ==================== 해부 실루엣 (외곽선1+면2~3+하이라이트1+접촉그림자1) ==================== */
+const Anat={
+  // 대뇌 — 주름진 반구
+  brain(x,cx,cy,s,act){
+    CV.shadow(x,cx,cy+s*.72,s*.78,s*.2);
+    x.save();x.translate(cx,cy);
+    const g=x.createLinearGradient(-s,-s,s*.6,s);
+    g.addColorStop(0,act?'#F3C9B8':'#9E8A85');g.addColorStop(.55,act?'#D99C8B':'#7C6B68');g.addColorStop(1,act?'#A96B5E':'#5A4E4C');
+    x.beginPath();
+    x.moveTo(-s,.28*s);
+    x.bezierCurveTo(-s*1.05,-s*.62,-s*.42,-s*1.02,s*.06,-s*.92);
+    x.bezierCurveTo(s*.7,-s*.82,s*1.04,-s*.24,s*.94,s*.24);
+    x.bezierCurveTo(s*.86,s*.62,s*.4,s*.78,-s*.1,s*.72);
+    x.bezierCurveTo(-s*.55,s*.68,-s*.94,s*.6,-s,.28*s);
+    x.closePath();x.fillStyle=g;x.fill();
+    x.strokeStyle=act?'#8E5449':'#4B4140';x.lineWidth=1.6;x.stroke();
+    // 주름
+    x.strokeStyle=act?'rgba(120,60,50,.5)':'rgba(45,38,38,.5)';x.lineWidth=1.5;
+    for(let i=0;i<4;i++){
+      const yy=-s*.6+i*s*.38;
+      x.beginPath();x.moveTo(-s*.82,yy);
+      x.bezierCurveTo(-s*.3,yy-s*.2,s*.2,yy+s*.2,s*.8,yy-s*.05);x.stroke();
+    }
+    // 하이라이트 — 좌상단 광원
+    x.beginPath();x.ellipse(-s*.34,-s*.5,s*.4,s*.2,-.5,0,Math.PI*2);
+    x.fillStyle='rgba(255,255,255,.17)';x.fill();
+    x.restore();
+    Anat.tag(x,cx,cy+s*.98,'대뇌',act);
+  },
+  // 척수 — 나비 모양 회백질 단면
+  cord(x,cx,cy,s,act){
+    CV.shadow(x,cx,cy+s*.9,s*.7,s*.18);
+    x.save();x.translate(cx,cy);
+    const g=x.createLinearGradient(-s,-s,s*.5,s);
+    g.addColorStop(0,'#D8DEE6');g.addColorStop(1,'#8E9AA8');
+    x.beginPath();x.ellipse(0,0,s*.86,s*.78,0,0,Math.PI*2);
+    x.fillStyle=g;x.fill();x.strokeStyle='#6E7A88';x.lineWidth=1.6;x.stroke();
+    // 회백질(나비)
+    x.beginPath();
+    x.moveTo(0,-s*.5);
+    x.bezierCurveTo(-s*.2,-s*.56,-s*.58,-s*.44,-s*.5,-s*.14);
+    x.bezierCurveTo(-s*.46,s*.02,-s*.2,s*.04,-s*.16,s*.1);
+    x.bezierCurveTo(-s*.14,s*.36,-s*.42,s*.4,-s*.36,s*.54);
+    x.bezierCurveTo(-s*.3,s*.66,-s*.06,s*.6,0,s*.5);
+    x.bezierCurveTo(s*.06,s*.6,s*.3,s*.66,s*.36,s*.54);
+    x.bezierCurveTo(s*.42,s*.4,s*.14,s*.36,s*.16,s*.1);
+    x.bezierCurveTo(s*.2,s*.04,s*.46,s*.02,s*.5,-s*.14);
+    x.bezierCurveTo(s*.58,-s*.44,s*.2,-s*.56,0,-s*.5);
+    x.closePath();
+    x.fillStyle=act?'#FFC53D':'#A9927A';x.fill();
+    x.strokeStyle=act?'#C99420':'#7E6A55';x.lineWidth=1.2;x.stroke();
+    if(act){x.shadowColor='rgba(255,197,61,.85)';x.shadowBlur=18;x.fill();x.shadowBlur=0;}
+    x.beginPath();x.ellipse(-s*.3,-s*.36,s*.3,s*.14,-.5,0,Math.PI*2);
+    x.fillStyle='rgba(255,255,255,.4)';x.fill();
+    x.restore();
+    Anat.tag(x,cx,cy+s*1.06,'척수',act);
+  },
+  // 눈 — 공막+홍채+동공
+  eye(x,cx,cy,s,act){
+    CV.shadow(x,cx,cy+s*.62,s*.7,s*.16);
+    x.save();x.translate(cx,cy);
+    x.beginPath();x.ellipse(0,0,s*.92,s*.6,0,0,Math.PI*2);
+    const g=x.createLinearGradient(-s,-s*.5,s*.4,s*.5);
+    g.addColorStop(0,'#FFFFFF');g.addColorStop(1,'#C9D3DC');
+    x.fillStyle=g;x.fill();x.strokeStyle='#7C8A98';x.lineWidth=1.6;x.stroke();
+    x.beginPath();x.arc(s*.06,0,s*.36,0,Math.PI*2);
+    x.fillStyle=act?'#3FA796':'#4E7A8C';x.fill();
+    x.strokeStyle='#2B4E5C';x.lineWidth=1.2;x.stroke();
+    x.beginPath();x.arc(s*.06,0,s*.16,0,Math.PI*2);x.fillStyle='#12181E';x.fill();
+    x.beginPath();x.arc(-s*.1,-s*.18,s*.1,0,Math.PI*2);x.fillStyle='rgba(255,255,255,.85)';x.fill();
+    x.restore();
+    Anat.tag(x,cx,cy+s*.9,'눈',act);
+  },
+  // 피부 + 열원
+  skin(x,cx,cy,s,act){
+    CV.shadow(x,cx,cy+s*.7,s*.66,s*.16);
+    x.save();x.translate(cx,cy);
+    CV.roundRect(x,-s*.85,-s*.1,s*1.7,s*.66,s*.14);
+    const g=x.createLinearGradient(0,-s*.1,0,s*.56);
+    g.addColorStop(0,'#F0C9AE');g.addColorStop(.5,'#D9A585');g.addColorStop(1,'#B07E60');
+    x.fillStyle=g;x.fill();x.strokeStyle='#8E6247';x.lineWidth=1.5;x.stroke();
+    x.beginPath();x.moveTo(-s*.72,s*.02);x.lineTo(s*.72,s*.02);
+    x.strokeStyle='rgba(255,255,255,.42)';x.lineWidth=2;x.stroke();
+    // 열원 (냄비 바닥)
+    CV.roundRect(x,-s*.6,-s*.62,s*1.2,s*.34,s*.08);
+    x.fillStyle=act?'#C7514B':'#5A4A4A';x.fill();
+    x.strokeStyle=act?'#8E322D':'#3E3434';x.lineWidth=1.4;x.stroke();
+    if(act){
+      x.strokeStyle='rgba(255,197,61,.75)';x.lineWidth=2;
+      for(let i=-1;i<=1;i++){x.beginPath();x.moveTo(i*s*.3,-s*.66);
+        x.quadraticCurveTo(i*s*.3+s*.12,-s*.86,i*s*.3,-s*1.02);x.stroke();}
+    }
+    x.restore();
+    Anat.tag(x,cx,cy+s*.96,'피부',act);
+  },
+  // 힘줄 + 망치
+  tendon(x,cx,cy,s,act){
+    CV.shadow(x,cx,cy+s*.72,s*.6,s*.16);
+    x.save();x.translate(cx,cy);
+    x.beginPath();x.ellipse(-s*.15,0,s*.5,s*.62,0,0,Math.PI*2);
+    const g=x.createLinearGradient(-s*.6,-s*.6,s*.2,s*.5);
+    g.addColorStop(0,'#EFE3D2');g.addColorStop(1,'#B9A891');
+    x.fillStyle=g;x.fill();x.strokeStyle='#8B7C67';x.lineWidth=1.6;x.stroke();
+    x.beginPath();x.moveTo(-s*.1,s*.4);x.quadraticCurveTo(s*.16,s*.6,s*.4,s*.5);
+    x.strokeStyle=act?'#FFC53D':'#C8B79E';x.lineWidth=s*.16;x.lineCap='round';x.stroke();
+    // 망치
+    x.save();x.translate(s*.5,-s*.36);x.rotate(act?.5:.15);
+    CV.roundRect(x,-s*.34,-s*.12,s*.68,s*.24,s*.06);
+    x.fillStyle=act?'#C7514B':'#6B5A58';x.fill();
+    x.strokeStyle='#3E3232';x.lineWidth=1.3;x.stroke();
+    x.restore();
+    x.beginPath();x.ellipse(-s*.3,-s*.3,s*.2,s*.12,-.5,0,Math.PI*2);
+    x.fillStyle='rgba(255,255,255,.4)';x.fill();
+    x.restore();
+    Anat.tag(x,cx,cy+s*.98,'무릎 힘줄',act);
+  },
+  // 근육 — 방추형 + 근섬유
+  muscle(x,cx,cy,s,act,label){
+    CV.shadow(x,cx,cy+s*.66,s*.66,s*.16);
+    x.save();x.translate(cx,cy);
+    x.beginPath();
+    x.moveTo(-s*.9,0);
+    x.bezierCurveTo(-s*.5,-s*.62,s*.5,-s*.62,s*.9,0);
+    x.bezierCurveTo(s*.5,s*.62,-s*.5,s*.62,-s*.9,0);
+    x.closePath();
+    const g=x.createLinearGradient(-s*.6,-s*.5,s*.4,s*.5);
+    if(act){g.addColorStop(0,'#F09A92');g.addColorStop(.5,'#C7514B');g.addColorStop(1,'#8C332F');}
+    else{g.addColorStop(0,'#A88783');g.addColorStop(.5,'#7E5D5A');g.addColorStop(1,'#5A4341');}
+    x.fillStyle=g;x.fill();x.strokeStyle=act?'#7A2A26':'#4A3634';x.lineWidth=1.6;x.stroke();
+    x.strokeStyle='rgba(255,255,255,.22)';x.lineWidth=1.2;
+    for(let i=-2;i<=2;i++){
+      x.beginPath();x.moveTo(-s*.72,i*s*.14);
+      x.quadraticCurveTo(0,i*s*.2,s*.72,i*s*.14);x.stroke();
+    }
+    x.beginPath();x.ellipse(-s*.28,-s*.24,s*.32,s*.1,-.3,0,Math.PI*2);
+    x.fillStyle='rgba(255,255,255,.2)';x.fill();
+    x.restore();
+    Anat.tag(x,cx,cy+s*.9,label,act);
+  },
+  tag(x,cx,cy,txt,act){
+    x.save();x.font='600 11px "IBM Plex Sans KR",sans-serif';x.textAlign='center';x.textBaseline='top';
+    x.fillStyle=act?'#FFD469':'#8FA0B0';x.fillText(txt,cx,cy);x.restore();
+  }
+};
+
+/* ==================== 1단계 캔버스 — 신경 전달 ==================== */
+const Neuro={
+  t0:0, running:false, dur:0, prog:0, shownMs:0, lateBrain:0,
+  nodes(w,h){
+    return {
+      recep:{x:w*.13,y:h*.60}, brain:{x:w*.50,y:h*.22},
+      cord:{x:w*.50,y:h*.62}, eff:{x:w*.87,y:h*.60}
+    };
+  },
+  segs(c,n){
+    return c.viaBrain
+      ? [[n.recep,n.brain,-.22],[n.brain,n.cord,.30],[n.cord,n.eff,-.18]]
+      : [[n.recep,n.cord,-.16],[n.cord,n.eff,-.16]];
+  },
+  pt(a,b,bow,t){
+    const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+    const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy);
+    const cx=mx-dy/len*len*bow, cy=my+dx/len*len*bow;
+    const u=1-t;
+    return {x:u*u*a.x+2*u*t*cx+t*t*b.x, y:u*u*a.y+2*u*t*cy+t*t*b.y};
+  },
+  fire(){
+    const c=NEURO[App.nIdx];
+    if(!App.nPred[c.id]){UI.toast('먼저 예측을 골라 주세요.');return;}
+    Neuro.running=true;Neuro.prog=0;Neuro.shownMs=0;Neuro.lateBrain=0;
+    Neuro.dur=c.ms*10;      // 실제의 1/10 속도로 재생
+    Neuro.t0=performance.now();
+    Sfx.play('zap');
+    UI.el('cv1-note').innerHTML='실제 속도의 <b>1/10</b>로 재생하고 있어요.';
+    UI.live(c.name+' 자극을 발생시켰습니다.');
+  },
+  draw(ts){
+    const C=CV.ctx('cv1');if(!C)return;
+    const {x,w,h}=C, c=NEURO[App.nIdx], n=Neuro.nodes(w,h), segs=Neuro.segs(c,n);
+    const S=Math.min(w,h)*0.085;
+
+    // 배경 — 조직 표본 질감
+    const bg=x.createRadialGradient(w*.5,h*.45,0,w*.5,h*.45,Math.max(w,h)*.75);
+    bg.addColorStop(0,'#131E2A');bg.addColorStop(1,'#070C12');
+    x.fillStyle=bg;x.fillRect(0,0,w,h);
+    x.save();x.globalAlpha=.05;x.strokeStyle='#8FA3BF';x.lineWidth=1;
+    for(let i=0;i<14;i++){
+      const yy=(i/14)*h;
+      x.beginPath();x.moveTo(0,yy);
+      x.bezierCurveTo(w*.3,yy+22,w*.7,yy-22,w,yy+6);x.stroke();
+    }
+    x.restore();
+
+    // 진행률
+    if(Neuro.running){
+      const e=(ts-Neuro.t0)/Neuro.dur;
+      Neuro.prog=clamp(e,0,1);
+      Neuro.shownMs=Math.round(Neuro.prog*c.ms);
+      if(e>=1){
+        Neuro.running=false;Neuro.prog=1;Neuro.shownMs=c.ms;
+        if(!c.viaBrain)Neuro.lateBrain=ts;
+        Neuro.done();
+      }
+    }
+    const P=Neuro.prog, total=segs.length, gp=P*total;
+
+    // 대뇌 (반사에서는 흐리게 그리되 존재는 보여준다)
+    const brainAct=c.viaBrain ? (gp>=1&&gp<2.02) : (Neuro.lateBrain&&ts-Neuro.lateBrain<900);
+    x.save();
+    if(!c.viaBrain)x.globalAlpha=brainAct?.95:.42;
+    Anat.brain(x,n.brain.x,n.brain.y,S*1.15,brainAct);
+    x.restore();
+
+    // 축삭 경로 — 말이집(마디) 표현
+    segs.forEach((sg,si)=>{
+      const [a,b,bow]=sg, N=26;
+      for(let i=0;i<N;i++){
+        const t1=i/N,t2=(i+.62)/N;
+        const p1=Neuro.pt(a,b,bow,t1),p2=Neuro.pt(a,b,bow,t2);
+        const passed=gp>=si+t2;
+        const head=gp>si+t1&&gp<si+t1+.12;
+        x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);
+        x.lineCap='round';
+        x.lineWidth=head?9:6;
+        x.strokeStyle=head?'#FFE9A8':(passed?'#EFD9A6':'rgba(143,163,191,.30)');
+        if(head){x.shadowColor='rgba(255,197,61,.9)';x.shadowBlur=16;}
+        x.stroke();x.shadowBlur=0;
+      }
+      // 시냅스 확산 플래시
+      if(si<total-1){
+        const jt=si+1, d=gp-jt;
+        if(d>=0&&d<.35){
+          const b2=segs[si][1];
+          const a2=1-d/.35;
+          x.beginPath();x.arc(b2.x,b2.y,S*(.5+d*2.4),0,Math.PI*2);
+          x.strokeStyle=`rgba(255,197,61,${a2*.6})`;x.lineWidth=2;x.stroke();
+        }
+      }
+    });
+
+    // 노드
+    const recepAct=gp<.55;
+    const cordAct = c.viaBrain ? (gp>=2&&gp<2.4) : (gp>=1&&gp<1.4);
+    const effAct  = gp>=total-.08;
+    if(c.recep==='eye')Anat.eye(x,n.recep.x,n.recep.y,S*1.05,recepAct&&P>0);
+    else if(c.recep==='skin')Anat.skin(x,n.recep.x,n.recep.y,S*1.05,recepAct&&P>0);
+    else Anat.tendon(x,n.recep.x,n.recep.y,S*1.05,recepAct&&P>0);
+    Anat.cord(x,n.cord.x,n.cord.y,S*1.05,cordAct);
+    Anat.muscle(x,n.eff.x,n.eff.y,S*1.15,effAct,
+      c.eff==='leg'?'다리 근육':(c.eff==='arm'?'팔 근육':'넓적다리 근육'));
+
+    // 임펄스 헤드
+    if(P>0&&P<1){
+      const si=Math.min(total-1,Math.floor(gp)), lt=gp-si;
+      const p=Neuro.pt(segs[si][0],segs[si][1],segs[si][2],clamp(lt,0,1));
+      x.beginPath();x.arc(p.x,p.y,9,0,Math.PI*2);
+      x.fillStyle='#FFC53D';x.shadowColor='#FFC53D';x.shadowBlur=26;x.fill();
+      x.shadowBlur=0;
+      x.beginPath();x.arc(p.x-2.5,p.y-2.5,3.2,0,Math.PI*2);
+      x.fillStyle='rgba(255,255,255,.9)';x.fill();
+    }
+
+    // 반사 뒤 대뇌로 가는 통증 신호
+    if(!c.viaBrain&&Neuro.lateBrain){
+      const d=(ts-Neuro.lateBrain)/900;
+      if(d<1){
+        const p=Neuro.pt(n.cord,n.brain,.18,d);
+        x.beginPath();x.arc(p.x,p.y,6,0,Math.PI*2);
+        x.fillStyle='rgba(199,81,75,.9)';x.shadowColor='rgba(199,81,75,.8)';x.shadowBlur=14;x.fill();x.shadowBlur=0;
+        x.save();x.font='500 11px "IBM Plex Sans KR",sans-serif';x.fillStyle='rgba(240,138,130,.95)';
+        x.textAlign='left';x.fillText('통증 느낌은 그 다음에',p.x+12,p.y);x.restore();
+      }else if(d>2.4){Neuro.lateBrain=0;}
+    }
+
+    // 계기판 갱신
+    UI.el('g1-ms').textContent=Neuro.shownMs;
+    UI.el('g1-bar').style.width=clamp(Neuro.shownMs/250*100,0,100)+'%';
+    UI.el('g1-center').textContent=P>=1?(c.center+'에서 명령'):'—';
+
+    CV.mark(x,w,h);
+  },
+  done(){
+    const c=NEURO[App.nIdx], ok=App.nPred[c.id]===c.center;
+    Sfx.play(ok?'ok':'no');
+    UI.el('s1-save').disabled=false;
+    Neuro.panel(true);
+    UI.live(`반응 시간 ${c.ms}밀리초, 명령을 내린 곳은 ${c.center}입니다.`);
+  },
+  record(){
+    const c=NEURO[App.nIdx];
+    App.nRec[c.id]={predict:App.nPred[c.id],ms:c.ms,center:c.center,ok:App.nPred[c.id]===c.center};
+    Sfx.play('ok');UI.toast('기록했어요. 보고서에 담깁니다.');
+    Flow.render();Neuro.list();Neuro.panel(true);
+    App.save();
+  },
+
+  /* --- 1단계 사이드 패널 --- */
+  list(){
+    UI.el('pick1').innerHTML=NEURO.map((c,i)=>`
+      <button aria-pressed="${i===App.nIdx}" onclick="Neuro.pick(${i})">
+        <svg class="g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          ${c.recep==='eye'?'<path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.6"/>'
+            :c.recep==='skin'?'<path d="M4 15h16v4H4z"/><path d="M8 11c0-2 2-2 2-4M13 11c0-2 2-2 2-4M18 11c0-1.4 1.2-1.6 1.2-3"/>'
+            :'<path d="M5 19c3-1 5-4 5-8"/><path d="M14 6l6 4"/><rect x="13" y="3" width="7" height="4" rx="1.4" transform="rotate(24 16.5 5)"/>'}
+        </svg>
+        <span><span class="t">${c.name}</span><br><span class="k">${c.kind} · ${c.ms}ms</span></span>
+        ${App.nRec[c.id]?'<span class="done">●</span>':''}
+      </button>`).join('');
+  },
+  pick(i){
+    App.nIdx=i;Neuro.running=false;Neuro.prog=0;Neuro.shownMs=0;Neuro.lateBrain=0;
+    UI.el('cv1-tag').textContent=NEURO[i].kind;
+    UI.el('cv1-note').innerHTML='사례를 고르고 <b>자극 발생시키기</b>를 눌러 보세요.';
+    UI.el('s1-save').disabled=!App.nPred[NEURO[i].id]||!Neuro._doneOf(i);
+    Sfx.play('tap');Neuro.list();Neuro.panel(false);Flow.render();
+  },
+  _doneOf(i){return !!App.nRec[NEURO[i].id];},
+  panel(after){
+    const c=NEURO[App.nIdx], pred=App.nPred[c.id], rec=App.nRec[c.id];
+    const shown=after||!!rec;
+    let h='';
+    h+=`<div class="poe">
+      <div class="q">예측해 볼까요? <b>${esc(c.name)}</b> — 이 반응의 명령을 내리는 곳은 어디일까요?</div>
+      <div class="opts">
+        ${['대뇌','척수'].map(v=>`<button aria-pressed="${pred===v}" ${shown?'disabled':''} onclick="Neuro.predict('${v}')">
+          <span class="mk"></span>${v}</button>`).join('')}
+      </div>
+    </div>`;
+    if(shown){
+      const ok=pred===c.center;
+      h+=`<div class="res ${ok?'ok':'no'}" style="margin-top:12px">
+        <svg class="g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          ${ok?'<path d="M20 6 9 17l-5-5"/>':'<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.2v.1"/>'}
+        </svg>
+        <span>${ok?`예측한 대로 <b>${c.center}</b>가 명령을 내렸어요.`
+                  :`예측은 <b>${pred}</b>였지만 실제로는 <b>${c.center}</b>가 명령을 내렸어요.`}
+        <br>${esc(c.why)}</span></div>`;
+      h+=`<div class="rows" style="margin-top:12px">
+        <div><span>반응 시간</span><b>${c.ms} <span class="u">ms</span></b></div>
+        <div><span>명령을 내린 곳</span><b style="font-size:13px">${c.center}</b></div>
+        <div><span>가장 빠른 사례 대비</span><b>${(c.ms/25).toFixed(1)} <span class="u">배</span></b></div>
+      </div>`;
+      h+=`<div style="margin-top:12px;font-size:13px;color:var(--txt-2);word-break:keep-all;line-height:1.6">
+        <b style="color:var(--txt)">전달 경로</b><br>${esc(c.route)}</div>`;
+      h+=`<details class="more" style="margin-top:12px"><summary>더 알아보기</summary><p>${esc(c.extra)}</p></details>`;
+      h+=`<div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">
+        ${['뉴런','시냅스','반사궁'].map(t=>`<button class="btn sm" onclick="UIterm('${t}')">${t} 뜻</button>`).join('')}</div>`;
+    }else{
+      h+=`<div style="margin-top:12px;font-size:13px;color:var(--txt-3);word-break:keep-all">
+        예측을 고른 뒤 아래 <b>자극 발생시키기</b>를 누르면 신호가 실제로 어디를 지나는지 볼 수 있어요.</div>`;
+    }
+    UI.el('s1-body').innerHTML=h;
+    UI.el('s1-save').disabled=!shown;
+  },
+  predict(v){
+    App.nPred[NEURO[App.nIdx].id]=v;Sfx.play('tap');Neuro.panel(false);App.save();
+  }
+};
+
+/* ==================== 2단계 캔버스 — 호르몬 조절 ==================== */
+const Hormone={
+  t:0, running:false, parts:[], rbc:[], pulse:0,
+  cur(){return HORMONE[App.hIdx];},
+  ratio(){return App.slider[Hormone.cur().id]/100;},
+  run(){
+    const hd=Hormone.cur();
+    if(!App.hPred[hd.id]){UI.toast('먼저 예측을 골라 주세요.');return;}
+    Hormone.running=true;Hormone.t=0;Sfx.play('pulse');
+    UI.el('cv2-note').innerHTML='혈관을 흐르는 알갱이 수가 <b>분비량</b>에 비례해요.';
+  },
+  draw(ts){
+    const C=CV.ctx('cv2');if(!C)return;
+    const {x,w,h}=C, hd=Hormone.cur(), r=Hormone.ratio();
+
+    x.fillStyle='#070C12';x.fillRect(0,0,w,h);
+    const vesH=Math.min(h*.34,150), gy=vesH, gh=h-vesH;
+
+    /* --- 혈관 종단면 --- */
+    const vg=x.createLinearGradient(0,0,0,vesH);
+    vg.addColorStop(0,'#2A1418');vg.addColorStop(.5,'#3A1A1F');vg.addColorStop(1,'#200F13');
+    x.fillStyle=vg;x.fillRect(0,0,w,vesH);
+    // 혈관벽 내피 + 하이라이트(좌상단 광원)
+    x.fillStyle='#4A2228';x.fillRect(0,0,w,7);x.fillRect(0,vesH-7,w,7);
+    x.fillStyle='rgba(255,255,255,.16)';x.fillRect(0,0,w,2);
+    x.fillStyle='rgba(0,0,0,.35)';x.fillRect(0,vesH-2,w,2);
+
+    // 적혈구 — 원반형, 느리게 흐름
+    if(Hormone.rbc.length===0){
+      for(let i=0;i<12;i++)Hormone.rbc.push({x:Math.random()*w,y:12+Math.random()*(vesH-30),
+        s:6+Math.random()*4,v:.28+Math.random()*.35,p:Math.random()*6});
+    }
+    Hormone.rbc.forEach(b=>{
+      b.x+=b.v; if(b.x>w+14)b.x=-14;
+      b.p+=.02;
+      x.save();x.translate(b.x,b.y+Math.sin(b.p)*2);
+      x.beginPath();x.ellipse(0,0,b.s,b.s*.72,0,0,Math.PI*2);
+      const g=x.createRadialGradient(-b.s*.3,-b.s*.3,1,0,0,b.s);
+      g.addColorStop(0,'#E2827C');g.addColorStop(.55,'#C7514B');g.addColorStop(1,'#8C332F');
+      x.fillStyle=g;x.fill();
+      x.beginPath();x.ellipse(0,0,b.s*.42,b.s*.3,0,0,Math.PI*2);
+      x.fillStyle='rgba(90,25,22,.55)';x.fill();
+      x.restore();
+    });
+
+    // 호르몬 알갱이 — 분비량에 비례
+    const want=Math.round(r*13);
+    for(let i=Hormone.parts.length-1;i>=0;i--){
+      const p=Hormone.parts[i];p.x+=p.v;
+      if(p.x>w+8){Hormone.parts.splice(i,1);continue;}
+      x.beginPath();x.arc(p.x,p.y+Math.sin(p.x*.05+p.o)*3,3.1,0,Math.PI*2);
+      x.fillStyle='#3FA796';x.shadowColor='rgba(63,167,150,.9)';x.shadowBlur=9;x.fill();x.shadowBlur=0;
+      if(p.x>w*.78&&!p.hit){p.hit=1;Hormone.pulse=ts;}
+    }
+    if(Hormone.parts.length<want&&Math.random()<.22){
+      Hormone.parts.push({x:w*.1,y:16+Math.random()*(vesH-38),v:.9+Math.random()*1.5,o:Math.random()*6});
+    }
+
+    // 분비 기관 / 표적 기관 라벨
+    x.save();
+    x.font='600 11px "IBM Plex Sans KR",sans-serif';x.textBaseline='middle';
+    x.fillStyle='rgba(63,167,150,.95)';x.textAlign='left';
+    x.fillText('◀ '+hd.gland+' 에서 분비',12,vesH-20);
+    const pl=ts-Hormone.pulse<420;
+    x.fillStyle=pl?'#7FE3D0':'rgba(150,175,190,.8)';x.textAlign='right';
+    x.fillText('표적: '+hd.target+' ▶',w-12,vesH-20);
+    x.restore();
+    if(pl){
+      const a=1-(ts-Hormone.pulse)/420;
+      x.beginPath();x.arc(w-16,vesH/2,16+(1-a)*26,0,Math.PI*2);
+      x.strokeStyle=`rgba(63,167,150,${a*.7})`;x.lineWidth=2;x.stroke();
+    }
+
+    /* --- 그래프 --- */
+    const pad={l:52,r:18,t:26,b:30};
+    const gw=w-pad.l-pad.r, ghh=gh-pad.t-pad.b, gx0=pad.l, gy0=gy+pad.t;
+    const X=t=>gx0+(t/24)*gw;
+    const Y=v=>gy0+ghh-((v-hd.yMin)/(hd.yMax-hd.yMin))*ghh;
+
+    // 정상 범위 밴드
+    const b1=clamp(Y(hd.normal[1]),gy0,gy0+ghh), b2=clamp(Y(hd.normal[0]),gy0,gy0+ghh);
+    x.fillStyle='rgba(63,167,150,.13)';x.fillRect(gx0,b1,gw,b2-b1);
+    x.strokeStyle='rgba(63,167,150,.42)';x.lineWidth=1;x.setLineDash([4,4]);
+    x.beginPath();x.moveTo(gx0,b1);x.lineTo(gx0+gw,b1);x.moveTo(gx0,b2);x.lineTo(gx0+gw,b2);x.stroke();
+    x.setLineDash([]);
+    x.save();x.font='500 10px "IBM Plex Mono",monospace';x.fillStyle='rgba(63,167,150,.9)';
+    x.textAlign='left';x.textBaseline='bottom';x.fillText('정상 범위',gx0+5,b2-3);x.restore();
+
+    // 격자·축
+    x.strokeStyle='rgba(143,163,191,.14)';x.lineWidth=1;x.beginPath();
+    for(let i=0;i<=4;i++){const yy=gy0+ghh/4*i;x.moveTo(gx0,yy);x.lineTo(gx0+gw,yy);}
+    for(let i=0;i<=4;i++){const xx=gx0+gw/4*i;x.moveTo(xx,gy0);x.lineTo(xx,gy0+ghh);}
+    x.stroke();
+
+    x.save();x.font='500 10px "IBM Plex Mono",monospace';x.fillStyle='#7D8FA1';
+    x.textAlign='right';x.textBaseline='middle';
+    for(let i=0;i<=4;i++){
+      const v=hd.yMax-(hd.yMax-hd.yMin)/4*i;
+      x.fillText(Math.round(v),gx0-8,gy0+ghh/4*i);
+    }
+    x.textAlign='center';x.textBaseline='top';
+    for(let i=0;i<=4;i++)x.fillText((i*6)+'h',gx0+gw/4*i,gy0+ghh+7);
+    x.textAlign='left';x.fillStyle='#8FA3BF';x.font='600 11px "IBM Plex Sans KR",sans-serif';
+    x.fillText(hd.vlabel+' ('+hd.unit+')',gx0-42,gy0-18);
+    x.restore();
+
+    if(!Hormone.running){
+      x.save();x.font='600 13px "IBM Plex Sans KR",sans-serif';x.fillStyle='#5E7288';
+      x.textAlign='center';x.textBaseline='middle';
+      x.fillText('아래 24시간 관찰하기를 누르면 그래프가 그려져요',gx0+gw/2,gy0+ghh/2);
+      x.restore();CV.mark(x,w,h);return;
+    }
+    if(Hormone.t<24)Hormone.t=Math.min(24,Hormone.t+(App.reduced?24:0.16));
+
+    // 정상(100%) 기준선 — 비교용 점선
+    if(Math.abs(r-1)>.02){
+      x.beginPath();x.setLineDash([5,5]);x.strokeStyle='rgba(239,217,166,.45)';x.lineWidth=1.6;
+      for(let t=0;t<=24;t+=.25){
+        const p=Y(clamp(hd.calc(1,t),hd.yMin,hd.yMax));
+        t===0?x.moveTo(X(t),p):x.lineTo(X(t),p);
+      }
+      x.stroke();x.setLineDash([]);
+      x.save();x.font='500 10px "IBM Plex Mono",monospace';x.fillStyle='rgba(239,217,166,.75)';
+      x.textAlign='right';x.fillText('정상 100%',gx0+gw-4,Y(clamp(hd.calc(1,24),hd.yMin,hd.yMax))-8);x.restore();
+    }
+
+    // 실제 곡선
+    x.beginPath();x.strokeStyle='#3FA796';x.lineWidth=3;x.lineJoin='round';x.lineCap='round';
+    let last={x:0,y:0};
+    for(let t=0;t<=Hormone.t;t+=.25){
+      const p=Y(clamp(hd.calc(r,t),hd.yMin,hd.yMax));
+      last={x:X(t),y:p};
+      t===0?x.moveTo(X(t),p):x.lineTo(X(t),p);
+    }
+    x.shadowColor='rgba(63,167,150,.5)';x.shadowBlur=10;x.stroke();x.shadowBlur=0;
+
+    // 현재 점
+    x.beginPath();x.arc(last.x,last.y,5.5,0,Math.PI*2);
+    x.fillStyle='#7FE3D0';x.shadowColor='#3FA796';x.shadowBlur=14;x.fill();x.shadowBlur=0;
+
+    const cv=hd.calc(r,Hormone.t);
+    x.save();x.font='600 12px "IBM Plex Mono",monospace';x.fillStyle='#7FE3D0';
+    x.textAlign=last.x>gx0+gw*.7?'right':'left';x.textBaseline='bottom';
+    x.fillText(Math.round(cv)+' '+hd.unit,last.x+(last.x>gx0+gw*.7?-10:10),last.y-8);x.restore();
+
+    Hormone.live(cv);
+    if(Hormone.t>=24&&!Hormone._fin){Hormone._fin=true;Hormone.done();}
+    CV.mark(x,w,h);
+  },
+  live(v){
+    const el=UI.el('h-now');if(el)el.textContent=Math.round(v);
+  },
+  band(v){const hd=Hormone.cur();return v<hd.normal[0]?'low':(v>hd.normal[1]?'high':'ok');},
+  done(){
+    const hd=Hormone.cur(), r=Hormone.ratio(), end=hd.calc(r,24);
+    const band=r<.6?'low':(r>1.4?'high':'ok');
+    const ok=App.hPred[hd.id]===band;
+    Sfx.play(ok?'ok':'no');
+    UI.el('s2-save').disabled=false;
+    Hormone.panel(true);
+    UI.live(`24시간 뒤 ${hd.vlabel}은 ${Math.round(end)} ${hd.unit}입니다.`);
+  },
+  record(){
+    const hd=Hormone.cur(), r=Hormone.ratio(), end=hd.calc(r,24);
+    const band=r<.6?'low':(r>1.4?'high':'ok');
+    App.hRec[hd.id]={level:Math.round(r*100),end:Math.round(end),unit:hd.unit,
+      band,predict:App.hPred[hd.id],ok:App.hPred[hd.id]===band,vlabel:hd.vlabel,name:hd.name};
+    Sfx.play('ok');UI.toast('기록했어요. 보고서에 담깁니다.');
+    Flow.render();Hormone.list();Hormone.panel(true);App.save();
+  },
+
+  list(){
+    UI.el('pick2').innerHTML=HORMONE.map((hd,i)=>`
+      <button aria-pressed="${i===App.hIdx}" onclick="Hormone.pick(${i})">
+        <svg class="g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          ${i===0?'<path d="M4 14c3-6 6 2 9-3s5 1 7-2"/><circle cx="6" cy="17" r="1.6"/><circle cx="14" cy="17" r="1.6"/>'
+            :i===1?'<path d="M12 3v4"/><path d="M7 8c-1.6 2-2 5 0 7 2.6 2.6 6.4 2.6 9 0 2-2 1.6-5 0-7"/><path d="M9 19h6"/>'
+            :'<path d="M9 4c-3 1-5 4-5 8s2 7 5 8"/><path d="M15 4c3 1 5 4 5 8s-2 7-5 8"/><path d="M9 12h6"/>'}
+        </svg>
+        <span><span class="t">${hd.name}</span><br><span class="k">${hd.gland} · ${hd.vlabel}</span></span>
+        ${App.hRec[hd.id]?'<span class="done">●</span>':''}
+      </button>`).join('');
+  },
+  pick(i){
+    App.hIdx=i;Hormone.running=false;Hormone.t=0;Hormone._fin=false;Hormone.parts=[];
+    UI.el('cv2-tag').textContent=HORMONE[i].name;
+    UI.el('cv2-note').innerHTML='분비량을 바꾸고 <b>24시간 관찰하기</b>를 눌러 보세요.';
+    Sfx.play('tap');Hormone.list();Hormone.panel(false);Flow.render();
+  },
+  slide(v){
+    const hd=Hormone.cur();App.slider[hd.id]=parseInt(v,10);
+    const e=UI.el('h-lv');if(e)e.textContent=App.slider[hd.id];
+    Hormone.t=0;Hormone._fin=false;
+    if(Hormone.running)Hormone.running=true;
+    App.save();
+  },
+  panel(after){
+    const hd=Hormone.cur(), pred=App.hPred[hd.id], rec=App.hRec[hd.id];
+    const shown=after||!!rec, lv=App.slider[hd.id], r=lv/100;
+    let h='';
+    h+=`<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <span class="lbl">${esc(hd.slabel)}</span>
+        <span class="num" style="font-size:20px;font-weight:600;color:var(--myelin)"><span id="h-lv">${lv}</span><span class="u">%</span></span>
+      </div>
+      <input class="sld" type="range" min="0" max="200" step="5" value="${lv}"
+        aria-label="${esc(hd.slabel)}" oninput="Hormone.slide(this.value)">
+      <div class="zones"><i class="z1"></i><i class="z2"></i><i class="z3"></i></div>
+      <div class="zt"><span>부족 0%</span><span>정상 100%</span><span>과다 200%</span></div>
+    </div>`;
+    h+=`<div class="rows" style="margin-bottom:12px">
+      <div><span>현재 ${esc(hd.vlabel)}</span><b><span id="h-now">—</span> <span class="u">${hd.unit}</span></b></div>
+      <div><span>정상 범위</span><b>${hd.normal[0]}~${hd.normal[1]} <span class="u">${hd.unit}</span></b></div>
+      <div><span>효과가 나타나는 속도</span><b style="font-size:13px">${hd.speed}</b></div>
+    </div>`;
+    h+=`<div class="poe">
+      <div class="q">예측해 볼까요? 분비량을 <b>${lv}%</b>로 두면 ${esc(hd.vlabel)}은 어떻게 될까요?</div>
+      <div class="opts">
+        ${[['low','정상보다 낮아진다'],['ok','정상 범위를 유지한다'],['high','정상보다 높아진다']]
+          .map(([k,t])=>`<button aria-pressed="${pred===k}" ${shown?'disabled':''} onclick="Hormone.predict('${k}')">
+            <span class="mk"></span>${t}</button>`).join('')}
+      </div>
+    </div>`;
+    if(shown){
+      const band=r<.6?'low':(r>1.4?'high':'ok');
+      const ok=pred===band, txt=hd[band];
+      const kor={low:'정상보다 낮음',ok:'정상 범위',high:'정상보다 높음'};
+      h+=`<div class="res ${ok?'ok':'no'}" style="margin-top:12px">
+        <svg class="g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          ${ok?'<path d="M20 6 9 17l-5-5"/>':'<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.2v.1"/>'}</svg>
+        <span>결과는 <b>${kor[band]}</b>이에요.${ok?' 예측이 맞았어요.':' 예측과 달랐네요, 그래프를 다시 볼까요?'}
+        <br>${esc(txt)}</span></div>`;
+      h+=`<details class="more" style="margin-top:12px"><summary>더 알아보기</summary>
+        <p>호르몬은 혈액을 타고 온몸을 돌기 때문에 신경보다 느리지만, 효과는 훨씬 오래 이어져요.
+        ${hd.name}은 효과가 나타나는 데 <b>${hd.speed}</b> 걸립니다.</p></details>`;
+      h+=`<div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">
+        ${['항상성','음성 피드백','표적세포',hd.term].filter((v,i,a)=>a.indexOf(v)===i)
+          .map(t=>`<button class="btn sm" onclick="UIterm('${t}')">${t} 뜻</button>`).join('')}</div>`;
+    }
+    UI.el('s2-body').innerHTML=h;
+    UI.el('s2-save').disabled=!shown;
+  },
+  predict(k){App.hPred[Hormone.cur().id]=k;Sfx.play('tap');Hormone.panel(false);App.save();}
+};
+
+/* ==================== 3단계 — 확인 퀴즈 ==================== */
+const Quiz={
+  render(){
+    const i=App.quiz.i, q=QUIZ[i], a=App.quiz.ans[i];
+    const dots=QUIZ.map((_,k)=>{
+      const r=App.quiz.ans[k];
+      return `<i class="${k===i?'cur':(r===undefined?'':(r===QUIZ[k].a?'ok':'no'))}"></i>`;
+    }).join('');
+    let h=`<div class="qhead"><span class="tag">${q.t}</span>
+      <span>${i+1}번째 질문</span><span class="qdots">${dots}</span></div>
+      <div class="qtext">${q.q}</div>
+      <div class="opts">${q.o.map((o,k)=>`
+        <button aria-pressed="${a===k}" ${a!==undefined?'disabled':''} onclick="Quiz.answer(${k})">
+          <span class="mk"></span>${esc(o)}</button>`).join('')}</div>`;
+    if(a!==undefined){
+      const ok=a===q.a;
+      h+=`<div class="res ${ok?'ok':'no'}">
+        <svg class="g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          ${ok?'<path d="M20 6 9 17l-5-5"/>':'<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.2v.1"/>'}</svg>
+        <span>${ok?'맞았어요.':`다시 살펴볼까요? 정답은 <b>${esc(q.o[q.a])}</b>예요.`}<br>${q.ex}</span></div>`;
+      h+=`<div style="display:flex;gap:8px">
+        ${i>0?'<button class="btn sm" onclick="Quiz.move(-1)">이전 질문</button>':''}
+        ${i<QUIZ.length-1?'<button class="btn acc" style="margin-left:auto" onclick="Quiz.move(1)">다음 질문</button>'
+          :'<button class="btn acc" style="margin-left:auto" onclick="Flow.go(4)">탐구 보고서로 가기</button>'}
+      </div>`;
+    }
+    UI.el('qcard').innerHTML=h;
+    Flow.ctrl();
+  },
+  answer(k){
+    App.quiz.ans[App.quiz.i]=k;
+    Sfx.play(k===QUIZ[App.quiz.i].a?'ok':'no');
+    Quiz.render();Flow.render();App.save();
+  },
+  move(d){
+    App.quiz.i=clamp(App.quiz.i+d,0,QUIZ.length-1);Sfx.play('tap');Quiz.render();
+  },
+  score(){return QUIZ.reduce((n,q,i)=>n+(App.quiz.ans[i]===q.a?1:0),0);},
+  answered(){return Object.keys(App.quiz.ans).length;}
+};
+
+/* ==================== 4단계 — 탐구 보고서 ==================== */
+const Report={
+  DUP:['성장','생장','인슐린','글루카곤','티록신','아드레날린','항이뇨'],
+  MIN:80,
+  read(){return{h:UI.el('r-h').value,o:UI.el('r-o').value,p:UI.el('r-p').value,s:UI.el('r-s').value};},
+  fill(d){if(!d)return;UI.el('r-h').value=d.h||'';UI.el('r-o').value=d.o||'';
+    UI.el('r-p').value=d.p||'';UI.el('r-s').value=d.s||'';},
+  check(){
+    const d=Report.read(), n=d.p.trim().length;
+    const c=UI.el('r-cnt');
+    c.textContent=`${n} / ${Report.MIN}자`;
+    c.classList.toggle('err',n<Report.MIN);
+    UI.el('r-warn').style.display=Report.DUP.some(x=>d.h.includes(x))?'block':'none';
+    const ok=d.h.trim()&&d.o.trim()&&d.s.trim()&&n>=Report.MIN;
+    const b=UI.el('c-main');
+    if(App.step===4)b.disabled=!ok;
+    App.save();
+    return ok;
+  },
+  summary(){
+    let h='';
+    NEURO.forEach(c=>{
+      const r=App.nRec[c.id];if(!r)return;
+      h+=`<div class="sumcard"><div class="h"><span>1단계</span><span>·</span><span>${c.kind}</span></div>
+        <div class="m">${esc(c.name)}</div>
+        <div class="d"><span>반응 시간 <b>${r.ms} ms</b></span><span>명령 <b>${r.center}</b></span>
+        <span>${r.ok?'예측 적중':'예측 빗나감'}</span></div></div>`;
+    });
+    HORMONE.forEach(hd=>{
+      const r=App.hRec[hd.id];if(!r)return;
+      h+=`<div class="sumcard"><div class="h"><span>2단계</span><span>·</span><span>${esc(hd.gland)}</span></div>
+        <div class="m">${esc(hd.name)} 분비량 ${r.level}%</div>
+        <div class="d"><span>${esc(hd.vlabel)} <b>${r.end} ${r.unit}</b></span>
+        <span>${r.band==='ok'?'정상 범위':(r.band==='low'?'정상보다 낮음':'정상보다 높음')}</span></div></div>`;
+    });
+    if(Quiz.answered()>0){
+      h+=`<div class="sumcard"><div class="h"><span>3단계</span><span>·</span><span>확인 퀴즈</span></div>
+        <div class="m">${QUIZ.length}문항 중 ${Quiz.score()}문항 정답</div></div>`;
+    }
+    UI.el('rep-sum').innerHTML=h||'<p class="empty">아직 기록이 없어요.<br>1·2단계에서 측정값을 기록하면 여기에 모입니다.</p>';
+  },
+  sheet(){
+    const d=Report.read();
+    const rows=[];
+    NEURO.forEach(c=>{const r=App.nRec[c.id];if(r)rows.push(
+      [`1 · ${c.kind}`,c.name,`${r.ms} ms`,r.center,r.ok?'적중':'빗나감']);});
+    HORMONE.forEach(hd=>{const r=App.hRec[hd.id];if(r)rows.push(
+      [`2 · 호르몬`,`${hd.name} ${r.level}%`,`${r.end} ${r.unit}`,
+       r.band==='ok'?'정상 범위':(r.band==='low'?'낮음':'높음'),r.ok?'적중':'빗나감']);});
+    const dt=new Date();
+    const ds=`${dt.getFullYear()}. ${dt.getMonth()+1}. ${dt.getDate()}.`;
+    UI.el('sheet').innerHTML=`
+      <h1>자극과 반응 탐구 보고서</h1>
+      <div class="meta"><span>학번 <b>${esc(App.id)}</b></span><span>이름 <b>${esc(App.name)}</b></span>
+        <span>날짜 <b>${ds}</b></span><span>성취기준 <b>9과20-02 · 9과20-03</b></span></div>
+      <h3>1 · 실험 기록</h3>
+      ${rows.length?`<table><tr><th>단계</th><th>조건</th><th>결과</th><th>판정</th><th>예측</th></tr>
+        ${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table>`
+        :'<div class="box">기록된 측정값이 없습니다.</div>'}
+      <h3>2 · 확인 퀴즈</h3>
+      <div class="box">${QUIZ.length}문항 중 ${Quiz.score()}문항 정답</div>
+      <h3>3 · 새로운 호르몬 조사</h3>
+      <table>
+        <tr><th style="width:120px">호르몬</th><td>${esc(d.h)}</td></tr>
+        <tr><th>분비되는 곳</th><td>${esc(d.o)}</td></tr>
+        <tr><th>찾아본 곳</th><td>${esc(d.s)}</td></tr>
+      </table>
+      <div class="box" style="margin-top:8px">${esc(d.p)}</div>
+      <div class="ft">🧪 영준쌤 가상실험실 &nbsp;|&nbsp; ⓒ 2026 영준쌤 · 아주중학교<br>
+        ⚠ 무단 복제·상업적 이용 금지</div>`;
+    return UI.el('sheet');
+  },
+  async png(){
+    if(!Report.check())return UI.toast('보고서를 먼저 채워 주세요.');
+    UI.toast('이미지를 만들고 있어요…');
+    try{
+      const cv=await html2canvas(Report.sheet(),{scale:2,backgroundColor:'#fff',logging:false});
+      const a=document.createElement('a');
+      a.download=`자극과반응_${App.id}_${App.name}.png`;a.href=cv.toDataURL('image/png');a.click();
+      Sfx.play('ok');UI.toast('저장했어요. 다운로드 폴더를 확인해 주세요.');
+    }catch(e){UI.toast('이미지를 만들지 못했어요. 실험 기록은 그대로 있어요.');}
+  },
+  async pdf(){
+    if(!Report.check())return UI.toast('보고서를 먼저 채워 주세요.');
+    UI.toast('PDF를 만들고 있어요…');
+    try{
+      const cv=await html2canvas(Report.sheet(),{scale:2,backgroundColor:'#fff',logging:false});
+      const {jsPDF}=window.jspdf;
+      const pdf=new jsPDF({unit:'mm',format:'a4'});
+      const pw=210, ph=297, iw=pw-16, ih=cv.height*iw/cv.width;
+      pdf.addImage(cv.toDataURL('image/jpeg',0.94),'JPEG',8,8,iw,Math.min(ih,ph-16));
+      pdf.save(`자극과반응_${App.id}_${App.name}.pdf`);
+      Sfx.play('ok');UI.toast('PDF로 저장했어요.');
+    }catch(e){UI.toast('PDF를 만들지 못했어요. 이미지로 저장해 보세요.');}
+  }
+};
+
+/* ==================== 원리 정리 드로어 ==================== */
+const CARDS=[
+ {t:'뉴런 — 신호를 나르는 세포',
+  fig:`<svg viewBox="0 0 320 130"><g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M56 65h60m0 0h72m0 0h60" stroke="#8FA3BF" stroke-width="3"/>
+    <path d="M60 65h26M96 65h26M132 65h26M168 65h26M204 65h26M240 65h30" stroke="#EFD9A6" stroke-width="9"/>
+    <circle cx="42" cy="65" r="17" fill="#3FA796" stroke="#2A7A6D" stroke-width="2"/>
+    <path d="M28 52 16 42M28 78 16 88M25 65H10" stroke="#3FA796" stroke-width="3"/>
+    <path d="M272 65l16-12m-16 12l16 12m-16-12h4" stroke="#EFD9A6" stroke-width="4"/>
+    <circle cx="150" cy="65" r="4" fill="#FFC53D"/></g>
+    <text x="42" y="105" fill="#8FA3BF" font-size="11" text-anchor="middle" font-family="sans-serif">신경 세포체</text>
+    <text x="165" y="42" fill="#8FA3BF" font-size="11" text-anchor="middle" font-family="sans-serif">축삭 (말이집)</text>
+    <text x="280" y="105" fill="#8FA3BF" font-size="11" text-anchor="middle" font-family="sans-serif">축삭 돌기 말단</text></svg>`,
+  def:'뉴런은 자극을 전기 신호로 바꿔 나르는 신경 세포예요.',
+  txt:'가지 돌기가 자극을 받아들이고, 축삭을 따라 신호가 이동해 말단에서 다음 뉴런으로 넘어갑니다. 축삭을 감싼 말이집은 신호를 훨씬 빠르게 건너뛰게 해 줘요.',
+  link:'1단계 화면에서 노란 불빛이 마디를 건너뛰며 달린 것이 바로 이 구조 때문이에요.',
+  more:'말이집이 있는 신경은 초당 100 m까지, 없는 신경은 초당 1 m 정도로 신호를 보냅니다.'},
+ {t:'반사궁 — 대뇌를 건너뛰는 지름길',
+  fig:`<svg viewBox="0 0 320 130"><g fill="none" stroke-linecap="round">
+    <ellipse cx="160" cy="30" rx="30" ry="17" fill="#4A4140" opacity=".5"/>
+    <ellipse cx="160" cy="88" rx="22" ry="20" fill="#D8DEE6"/>
+    <path d="M160 74c-14-2-16 12-8 16-2 8 6 12 8 6 2 6 10 2 8-6 8-4 6-18-8-16z" fill="#FFC53D"/>
+    <path d="M46 88h92" stroke="#FFC53D" stroke-width="5"/>
+    <path d="M182 88h92" stroke="#FFC53D" stroke-width="5"/>
+    <path d="M160 68V48" stroke="#8FA3BF" stroke-width="2.5" stroke-dasharray="4 4"/>
+    <circle cx="34" cy="88" r="12" fill="#D9A585"/>
+    <ellipse cx="288" cy="88" rx="16" ry="11" fill="#C7514B"/></g>
+    <text x="34" y="118" fill="#8FA3BF" font-size="11" text-anchor="middle" font-family="sans-serif">자극</text>
+    <text x="160" y="118" fill="#FFC53D" font-size="11" text-anchor="middle" font-family="sans-serif">척수</text>
+    <text x="160" y="16" fill="#8FA3BF" font-size="11" text-anchor="middle" font-family="sans-serif">대뇌 (거치지 않음)</text>
+    <text x="288" y="118" fill="#8FA3BF" font-size="11" text-anchor="middle" font-family="sans-serif">반응</text></svg>`,
+  def:'반사궁은 자극에서 반응까지 이어지는 가장 짧은 신경 경로예요.',
+  txt:'자극 → 감각 뉴런 → 척수 → 운동 뉴런 → 반응기 순서로 이어집니다. 판단을 맡는 대뇌를 지나지 않기 때문에 위험한 상황에서 몸을 아주 빠르게 지킬 수 있어요.',
+  link:'뜨거운 냄비 사례에서 <b>55 ms</b>, 무릎 반사에서 <b>25 ms</b>가 나온 까닭이 여기에 있습니다.',
+  more:'무릎 반사는 감각 뉴런과 운동 뉴런이 척수에서 곧바로 만나 시냅스를 하나만 거칩니다.'},
+ {t:'의식적 반응 vs 무조건 반사',
+  fig:`<svg viewBox="0 0 320 130">
+    <rect x="14" y="30" width="128" height="76" rx="10" fill="none" stroke="#C7514B" stroke-width="1.6"/>
+    <rect x="178" y="30" width="128" height="76" rx="10" fill="none" stroke="#3FA796" stroke-width="1.6"/>
+    <text x="78" y="22" fill="#C7514B" font-size="12" text-anchor="middle" font-family="sans-serif">의식적 반응</text>
+    <text x="242" y="22" fill="#3FA796" font-size="12" text-anchor="middle" font-family="sans-serif">무조건 반사</text>
+    <text x="78" y="62" fill="#EFD9A6" font-size="22" text-anchor="middle" font-family="monospace">220</text>
+    <text x="242" y="62" fill="#EFD9A6" font-size="22" text-anchor="middle" font-family="monospace">25~55</text>
+    <text x="78" y="80" fill="#8FA3BF" font-size="11" text-anchor="middle" font-family="sans-serif">ms · 대뇌</text>
+    <text x="242" y="80" fill="#8FA3BF" font-size="11" text-anchor="middle" font-family="sans-serif">ms · 척수</text>
+    <text x="78" y="98" fill="#8FA3BF" font-size="10" text-anchor="middle" font-family="sans-serif">내 의지로 조절 가능</text>
+    <text x="242" y="98" fill="#8FA3BF" font-size="10" text-anchor="middle" font-family="sans-serif">의지와 상관없이 일어남</text>
+    <path d="M150 68h20" stroke="#8FA3BF" stroke-width="2" stroke-dasharray="3 3"/></svg>`,
+  def:'대뇌를 거치는지에 따라 반응 속도와 조절 가능 여부가 갈려요.',
+  txt:'의식적 반응은 대뇌가 판단한 뒤 명령을 내리므로 느리지만 내가 조절할 수 있어요. 무조건 반사는 척수가 바로 명령하므로 빠르지만 참을 수 없습니다.',
+  link:'1단계에서 세 사례의 반응 시간을 나란히 재 보면 <b>약 4~9배</b> 차이가 납니다.',
+  more:'재채기·기침은 연수가, 동공 반사는 중간뇌가 담당하는 무조건 반사입니다.'},
+ {t:'신경과 호르몬 — 두 가지 전달 방식',
+  fig:`<svg viewBox="0 0 320 130">
+    <path d="M20 44h280" stroke="#FFC53D" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="240" cy="44" r="7" fill="#FFC53D"/>
+    <text x="20" y="30" fill="#FFC53D" font-size="11" font-family="sans-serif">신경 — 전기 신호, 빠르고 좁게, 짧게</text>
+    <rect x="20" y="82" width="280" height="20" rx="10" fill="#3A1A1F"/>
+    <g fill="#3FA796">
+      <circle cx="52" cy="92" r="4"/><circle cx="92" cy="88" r="4"/><circle cx="128" cy="96" r="4"/>
+      <circle cx="170" cy="89" r="4"/><circle cx="212" cy="95" r="4"/><circle cx="256" cy="90" r="4"/>
+    </g>
+    <text x="20" y="72" fill="#3FA796" font-size="11" font-family="sans-serif">호르몬 — 혈액 이동, 느리고 넓게, 오래</text>
+    <text x="20" y="120" fill="#8FA3BF" font-size="10" font-family="sans-serif">같은 거리를 신경은 0.02초, 호르몬은 수십 초~수 분에 전달합니다.</text></svg>`,
+  def:'신경은 전선처럼, 호르몬은 편지처럼 신호를 보냅니다.',
+  txt:'신경은 정해진 길로 전기 신호를 보내 빠르지만 좁은 범위에 짧게 작용해요. 호르몬은 혈액을 타고 온몸을 돌아 느리지만 넓은 범위에 오래 작용합니다.',
+  link:'2단계에서 인슐린은 몇 시간 만에, 티록신은 24시간이 지나도 계속 변하던 것을 떠올려 보세요.',
+  more:'두 방식은 따로 작동하지 않아요. 간뇌가 신경과 호르몬을 함께 조절해 항상성을 지킵니다.'},
+ {t:'항상성 — 음성 피드백으로 되돌리기',
+  fig:`<svg viewBox="0 0 320 130">
+    <rect x="30" y="56" width="260" height="24" fill="rgba(63,167,150,.18)"/>
+    <path d="M30 68h260" stroke="#3FA796" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <path d="M30 68q26-44 52 0t52 0q26-44 52 0t52 0q26-40 52 0" fill="none" stroke="#EFD9A6" stroke-width="3"/>
+    <text x="30" y="46" fill="#3FA796" font-size="11" font-family="sans-serif">정상 범위</text>
+    <text x="88" y="26" fill="#C7514B" font-size="10" text-anchor="middle" font-family="sans-serif">↑ 올라가면 낮추는 호르몬</text>
+    <text x="196" y="110" fill="#0F6FB8" font-size="10" text-anchor="middle" font-family="sans-serif">↓ 내려가면 올리는 호르몬</text></svg>`,
+  def:'음성 피드백은 값이 벗어나면 반대 방향으로 되돌리는 조절 방식이에요.',
+  txt:'혈당이 올라가면 인슐린이, 내려가면 글루카곤이 나와 원래 범위로 되돌립니다. 이렇게 몸속 상태를 일정하게 지키는 성질을 항상성이라고 해요.',
+  link:'2단계에서 인슐린을 100%로 두었을 때 혈당이 정상 범위로 돌아온 것이 바로 음성 피드백입니다.',
+  more:'체온·혈당·물의 양·무기염류 농도가 모두 이 방식으로 조절됩니다.'}
+];
+const Theory={
+  i:0,
+  open(i){if(typeof i==='number')Theory.i=i;
+    UI.el('scrim').classList.add('on');UI.el('drawer').classList.add('on');Theory.render();Sfx.play('tap');},
+  close(){UI.closeAll();},
+  move(d){Theory.i=(Theory.i+d+CARDS.length)%CARDS.length;Theory.render();Sfx.play('tap');},
+  render(){
+    const c=CARDS[Theory.i];
+    UI.el('t-title').textContent=c.t;
+    UI.el('t-prog').textContent=`${Theory.i+1} / ${CARDS.length}`;
+    UI.el('t-body').innerHTML=`<div class="tcard">
+      <div class="fig">${c.fig}</div>
+      <div class="def">${c.def}</div>
+      <div class="txt">${c.txt}</div>
+      <div class="link">${c.link}</div>
+      <details class="more"><summary>더 알아보기</summary><p>${c.more}</p></details>
+    </div>`;
+  }
+};
+
+/* ==================== 진입 게이트 (학번 수정 포함) ==================== */
+const Gate={
+  editing:false,
+  open(edit){
+    Gate.editing=!!edit;
+    UI.el('gate').classList.remove('off');
+    UI.el('g-id').value=App.id;UI.el('g-nm').value=App.name;
+    UI.el('g-err').textContent='';
+    UI.el('g-title').textContent=edit?'학번·이름 고치기':'자극과 반응 실험실';
+    UI.el('g-sub').textContent=edit
+      ? '잘못 적은 학번이나 이름을 여기서 고칠 수 있어요. 지금까지의 실험 기록은 그대로 남습니다.'
+      : '학번과 이름을 적으면 내 기록이 보고서에 자동으로 담겨요.';
+    UI.el('g-ok').textContent=edit?'고쳐서 저장하기':'실험 시작하기';
+    UI.el('g-cancel').style.display=edit?'':'none';
+    setTimeout(()=>UI.el('g-id').focus(),60);
+  },
+  cancel(){UI.el('gate').classList.add('off');Sfx.play('tap');},
+  submit(){
+    const id=UI.el('g-id').value.trim(), nm=UI.el('g-nm').value.trim();
+    const err=UI.el('g-err');
+    if(!/^\d{5}$/.test(id)){err.textContent='학번은 숫자 5자리로 적어 주세요. 예: 30112';UI.el('g-id').focus();return;}
+    if(nm.length<2){err.textContent='이름을 두 글자 이상 적어 주세요.';UI.el('g-nm').focus();return;}
+    App.id=id;App.name=nm;
+    UI.el('who-t').textContent=id;UI.el('who-n').textContent=nm;
+    UI.el('gate').classList.add('off');
+    Sfx.play('ok');
+    UI.toast(Gate.editing?'학번·이름을 고쳤어요.':'환영해요. 1단계부터 시작할게요.');
+    App.save();
+    if(!Gate.editing)Flow.go(1);
+    Report.summary();
+  }
+};
+document.getElementById('g-nm').addEventListener('keydown',e=>{if(e.key==='Enter')Gate.submit();});
+document.getElementById('g-id').addEventListener('keydown',e=>{if(e.key==='Enter')UI.el('g-nm').focus();});
+
+/* ==================== 흐름 제어 ==================== */
+const Flow={
+  unlocked(n){
+    if(n<=1)return true;
+    if(n===2)return Object.keys(App.nRec).length>=NEURO.length;
+    if(n===3)return Object.keys(App.hRec).length>=HORMONE.length;
+    if(n===4)return Quiz.answered()>=QUIZ.length;
+    return false;
+  },
+  go(n){
+    n=clamp(n,1,4);
+    if(!Flow.unlocked(n)){
+      const need={2:'1단계에서 세 사례를 모두 기록하면 열려요.',
+                  3:'2단계에서 호르몬 세 가지를 모두 기록하면 열려요.',
+                  4:'확인 퀴즈를 모두 풀면 열려요.'};
+      UI.toast(need[n]||'아직 열리지 않았어요.');return;
+    }
+    App.step=n;
+    document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',+v.dataset.v===n));
+    if(n===3)Quiz.render();
+    if(n===4){Report.summary();Report.check();}
+    Flow.render();Sfx.play('tap');App.save();
+    CV.fitAll();setTimeout(CV.fitAll,60);
+  },
+  render(){
+    // 스텝바
+    UI.el('steps').innerHTML=STEPS.map((s,i)=>{
+      const un=Flow.unlocked(s.n), done=Flow.unlocked(s.n+1)||(s.n===4&&Report.read().h);
+      return (i?'<span class="step-sep"></span>':'')+
+        `<button class="step" data-done="${done?1:0}" ${un?'':'disabled'}
+          ${App.step===s.n?'aria-current="step"':''} onclick="Flow.go(${s.n})">
+          <n>${un?(done?'✓':s.n):'🔒'}</n><span class="lb">${s.label}</span></button>`;
+    }).join('')+`<span class="spacer"></span><span class="mini" id="step-hint"></span>`;
+
+    // 컨트롤 바
+    Flow.ctrl();
+    if(App.step===1){Neuro.list();}
+    if(App.step===2){Hormone.list();}
+  },
+  ctrl(){
+    const a=UI.el('c-a'), b=UI.el('c-b'), main=UI.el('c-main'),
+          prev=UI.el('c-prev'), next=UI.el('c-next'), hint=UI.el('step-hint');
+    prev.style.visibility=App.step===1?'hidden':'visible';
+    next.style.display=App.step===4?'none':'';
+    next.disabled=!Flow.unlocked(App.step+1);
+    main.disabled=false;main.className='btn pri';
+    main.style.display='';
+    if(App.step===1){
+      const c=NEURO[App.nIdx];
+      a.textContent=c.name;b.textContent=`${c.kind} · 기록 ${Object.keys(App.nRec).length}/${NEURO.length}`;
+      main.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13H11l-1 9 8.5-11H12z"/></svg>자극 발생시키기';
+      main.onclick=Neuro.fire;
+      if(hint)hint.textContent=`세 사례를 모두 기록하면 2단계가 열려요`;
+    }else if(App.step===2){
+      const hd=Hormone.cur();
+      a.textContent=`${hd.name} ${App.slider[hd.id]}%`;
+      b.textContent=`${hd.gland} → ${hd.target} · 기록 ${Object.keys(App.hRec).length}/${HORMONE.length}`;
+      main.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l14 8-14 8z"/></svg>24시간 관찰하기';
+      main.className='btn acc';main.onclick=Hormone.run;
+      if(hint)hint.textContent='호르몬 세 가지를 모두 기록하면 3단계가 열려요';
+    }else if(App.step===3){
+      a.textContent=`확인 퀴즈 ${App.quiz.i+1} / ${QUIZ.length}`;
+      b.textContent=`${Quiz.answered()}문항 풀이 · ${Quiz.score()}문항 정답`;
+      main.style.display='none';
+      if(hint)hint.textContent='모두 풀면 탐구 보고서가 열려요';
+    }else{
+      a.textContent='탐구 보고서';
+      b.textContent=`${App.id} ${App.name} · 기록 ${Object.keys(App.nRec).length+Object.keys(App.hRec).length}건`;
+      main.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>결과 PDF 저장';
+      main.className='btn save';main.onclick=Report.pdf;
+      main.disabled=!Report.check();
+      if(hint)hint.innerHTML='<button class="btn sm" onclick="Report.png()">PNG로 저장</button>';
+    }
+  }
+};
+
+/* ==================== 시작 ==================== */
+(function boot(){
+  const s=App.load();
+  if(s){
+    App.id=s.id||'';App.name=s.name||'';App.sound=!!s.sound;App.theme=s.theme||'dark';
+    App.nRec=s.nRec||{};App.hRec=s.hRec||{};App.nPred=s.nPred||{};App.hPred=s.hPred||{};
+    App.quiz=s.quiz||{i:0,ans:{}};
+    document.documentElement.dataset.theme=App.theme;
+    UI.el('b-sound').classList.toggle('on',App.sound);
+    UI.el('mute-x').style.display=App.sound?'none':'';
+    if(s.rep)Report.fill(s.rep);
+  }
+  CV.init('cv1');CV.init('cv2');
+  Neuro.list();Neuro.panel(false);
+  Hormone.list();Hormone.panel(false);
+  Report.summary();Report.check();
+
+  if(App.id&&App.name){
+    UI.el('who-t').textContent=App.id;UI.el('who-n').textContent=App.name;
+    UI.el('gate').classList.add('off');
+    Flow.go(s&&Flow.unlocked(s.step)?s.step:1);
+  }else{
+    Gate.open(false);Flow.render();
+    document.querySelector('.view[data-v="1"]').classList.add('on');
+  }
+
+  // 모바일 바텀시트 — 핸들 탭으로 접기/펼치기
+  document.querySelectorAll('.side').forEach(sd=>{
+    sd.addEventListener('click',e=>{
+      if(e.target!==sd)return;
+      if(e.offsetY<18)sd.classList.toggle('min');
+    });
+  });
+
+  window.addEventListener('resize',CV.fitAll);
+  window.addEventListener('orientationchange',()=>setTimeout(CV.fitAll,120));
+
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape')UI.closeAll();
+    if(e.key==='ArrowRight'&&e.altKey)Flow.go(App.step+1);
+    if(e.key==='ArrowLeft'&&e.altKey)Flow.go(App.step-1);
+  });
+
+  let last=0;
+  function loop(ts){
+    if(ts-last>16){
+      last=ts;
+      if(App.step===1)Neuro.draw(ts);
+      else if(App.step===2)Hormone.draw(ts);
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+
+</script>
+</body>
+</html>
