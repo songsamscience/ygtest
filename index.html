@@ -273,6 +273,8 @@ button{background:none;border:0;cursor:pointer}
 /* ============ 퀴즈 뷰 ============ */
 .quiz{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s4);min-height:0;padding:var(--s4)}
 .qcard{width:100%;max-width:620px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r-l);padding:var(--s6);display:flex;flex-direction:column;gap:var(--s4);max-height:100%;overflow-y:auto;overscroll-behavior:contain}
+.qcard::-webkit-scrollbar{width:6px}
+.qcard::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:3px}
 .qhead{display:flex;align-items:center;gap:var(--s2);font-size:var(--fs-label);color:var(--txt-2)}
 .qhead .tag{border:1px solid var(--line-2);border-radius:var(--r-s);padding:2px 8px;font-size:11px;font-family:var(--f-num)}
 .qdots{margin-left:auto;display:flex;gap:5px}
@@ -375,6 +377,28 @@ details.more p{font-size:13px;color:var(--txt-2);margin-top:var(--s2);line-heigh
 #sheet .ft{margin-top:26px;padding-top:12px;border-top:1px solid #D8DEE4;font-size:11px;color:#7C8894;line-height:1.7}
 
 /* ============ 반응형 ============ */
+/* 넓은 화면: 문제 카드를 화면 폭에 맞춰 넓히고 보기를 2열로 → 스크롤 없이 한눈에 */
+@media (min-width:900px){
+  .qcard{max-width:min(1040px,100%);padding:var(--s6) var(--s8);gap:var(--s5)}
+  .qhead{font-size:14px}
+  .qtext{font-size:21px;line-height:1.5}
+  .qcard .opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2)}
+  .qcard .opts button{min-height:54px;font-size:16px;padding:var(--s2) var(--s4)}
+  .qcard .res{font-size:15px;line-height:1.6;padding:var(--s4)}
+}
+/* 세로가 짧은 노트북: 여백·글자를 줄여 스크롤 없이 담는다 */
+@media (min-width:900px) and (max-height:760px){
+  .qcard{padding:var(--s4) var(--s6);gap:var(--s3)}
+  .qtext{font-size:19px}
+  .qcard .opts button{min-height:46px;font-size:15px}
+  .qcard .res{padding:var(--s3);line-height:1.5}
+}
+@media (min-width:1400px) and (min-height:820px){
+  .qcard{max-width:1200px;padding:var(--s8) var(--s10);gap:var(--s6)}
+  .qtext{font-size:24px}
+  .qcard .opts button{min-height:62px;font-size:17px}
+  .qcard .res{font-size:16px}
+}
 @media (max-width:1000px){ :root{--w-side:340px} }
 @media (max-width:860px){
   :root{--h-header:56px;--h-steps:46px;--h-ctrl:60px;--fs-title:20px;--fs-sec:17px;--fs-num:24px}
